@@ -4,8 +4,12 @@
 
 ## Installation
 
+Inside the "froentend" directory:
 ```bash
 yarn install
+```
+```bash
+cd ..
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
