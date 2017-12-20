@@ -4,7 +4,7 @@
 
 ## Installation
 
-Inside the "froentend" directory:
+Inside the "frontend" directory:
 ```bash
 yarn install
 ```
