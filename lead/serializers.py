@@ -4,4 +4,4 @@ from .models import Process
 class ProcessSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Process
-		fields = ('id', 'service', 'unit', 'status', 'bulk', 'created')
+		fields = ('id', 'service', 'income', 'unit', 'stage', 'status', 'bulk', 'created')
