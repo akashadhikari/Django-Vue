@@ -1,7 +1,7 @@
 from rest_framework import viewsets, generics
-from .models import Process, Purpose
+from .models import Process
 
-from .serializers import ProcessSerializer, PurposeSerializer
+from .serializers import ProcessSerializer
 
 class ProcessListViewSet(generics.ListCreateAPIView):
     queryset = Process.objects.all()
@@ -16,17 +16,3 @@ class ProcessDetailsViewSet(generics.RetrieveUpdateDestroyAPIView):
 
     queryset = Process.objects.all()
     serializer_class = ProcessSerializer
-
-class PurposeListViewSet(generics.ListCreateAPIView):
-    queryset = Purpose.objects.all()
-    serializer_class = PurposeSerializer
-
-    def perform_create(self, serializer):
-        """Save the post data when creating a new instance."""
-        serializer.save()
-
-class PurposeDetailsViewSet(generics.RetrieveUpdateDestroyAPIView):
-    """This class handles the http GET, PUT and DELETE requests."""
-
-    queryset = Purpose.objects.all()
-    serializer_class = PurposeSerializer

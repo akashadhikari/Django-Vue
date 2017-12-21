@@ -1,9 +1,11 @@
 from django.contrib import admin
-from .models import Process
+from .models import Process, Salestage, Stageaction
 
 # Register your models here.
 
 admin.site.register(Process)
+admin.site.register(Salestage)
+admin.site.register(Stageaction)
 
 # from django.contrib import admin
 # from lead.models import *

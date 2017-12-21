@@ -19,22 +19,11 @@ medium_statuses = (
     ('Failure', 'Failure'),
 )
 
-purposes = (
+sales_stages = (
     ('Suspecting', 'Suspecting'),
     ('Prospecting', 'Prospecting'),
-    ('General Query', 'General Query'),
+    ('Approaching', 'Approaching'),
 )
-
-class Purpose(models.Model):
-    name = models.CharField(max_length=50, choices=purposes, default='Suspecting')
-    purpose_description = models.CharField(max_length=100, default="Purpose description here")
-    approached_date = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ('-approached_date',)
-
-    def __str__(self):
-        return "{}-{}".format(self.name, self.approached_date)
 
 class Process(models.Model):
     client_name = models.CharField(max_length=50)
@@ -45,15 +34,15 @@ class Process(models.Model):
     remainder_date = models.DateTimeField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
 
-    def clean(self):
-        # Don't allow Suspecting entries to have a remainder_date.
-        if self.purpose == 'Suspecting' and self.remainder_date is not None:
-            raise ValidationError({'remainder_date': _('Suspecting entries may not have a remainder date.')})
+    # def clean(self):
+    #     # Don't allow Suspecting entries to have a remainder_date.
+    #     if self.purpose == 'Suspecting' and self.remainder_date is not None:
+    #         raise ValidationError({'remainder_date': _('Suspecting entries may not have a remainder date.')})
 
-    #To call the model clean method we will override save method.
-    def save(self, *args, **kwargs):
-        self.clean()
-        return super(Process, self).save(*args, **kwargs)
+    # #To call the model clean method we will override save method.
+    # def save(self, *args, **kwargs):
+    #     self.clean()
+    #     return super(Process, self).save(*args, **kwargs)
 
     
     class Meta:
@@ -64,3 +53,14 @@ class Process(models.Model):
 
 # if stage = Suspecting, return datefield
 # if stage = Prospecting, return Charfield
+
+class Salestage(models.Model):
+    stage = models.CharField(max_length=15, choices=sales_stages, default='Suspecting')
+
+
+class Stageaction(models.Model):
+    action_name = models.CharField(max_length=100, default="Sample action")
+    #salestage = models.ForeignKey(Salestage, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "{}-{}".format(self.action_name)

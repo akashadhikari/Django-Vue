@@ -1,15 +1,11 @@
 from rest_framework import serializers
-from .models import Process, Purpose
+from .models import Process
 
 class ProcessSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Process
-		fields = ('id', 'client_name', 'contact_person', 'medium_action', 'medium_type', 'medium_status', 'remainder_date', 'created')
+		fields = ('id', 'client_name', 'contact_person', 'medium_action', 'medium_type', 'medium_status', 'stage', 'remainder_date', 'created')
 
-class PurposeSerializer(serializers.ModelSerializer):
-	class Meta:
-		model = Purpose
-		fields = ('name', 'purpose_description', 'approached_date')
 
 # from rest_framework import serializers
  
