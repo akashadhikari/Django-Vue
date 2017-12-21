@@ -3,37 +3,45 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 
-mediums = (
-	('Email', 'Email'),
+medium_actions = (
+    ('Inbound', 'Inbound'),
+    ('Outbound', 'Outbound'),
+)
+
+medium_types = (
+    ('Email', 'Email'),
     ('SMS', 'SMS'),
-    ('Inbound Call', 'Inbound Call'),
-    ('Outbound Call', 'Outbound Call'),
-    ('Visit', 'Visit'),
+    ('Call', 'Call'),
+)
+
+medium_statuses = (
+    ('Success', 'Success'),
+    ('Failure', 'Failure'),
 )
 
 purposes = (
-    ('Approach', 'Approach'),
-    ('Job Posting', 'Job Posting'),
     ('Suspecting', 'Suspecting'),
     ('Prospecting', 'Prospecting'),
-    ('Approval', 'Approval'),
-    ('Payment Collection', 'Payment Collection'),
     ('General Query', 'General Query'),
 )
 
-stages = (
-    ('A', 'A'),
-    ('B', 'B'),
-    ('C', 'C'),
-    ('D', 'D'),
-)
+class Purpose(models.Model):
+    name = models.CharField(max_length=50, choices=purposes, default='Suspecting')
+    purpose_description = models.CharField(max_length=100, default="Purpose description here")
+    approached_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ('-approached_date',)
+
+    def __str__(self):
+        return "{}-{}".format(self.name, self.approached_date)
 
 class Process(models.Model):
-    client_name = models.CharField(max_length=100)
-    value = models.IntegerField(default=0)
-    medium = models.CharField(max_length=10, choices=mediums, default='Email')
-    purpose = models.CharField(max_length=50, choices=purposes, default='General_Query')
-    stage = models.CharField(max_length=50, choices=stages, default='Suspecting')
+    client_name = models.CharField(max_length=50)
+    contact_person = models.CharField(max_length=100, default="Mr. Foo Bar")
+    medium_action = models.CharField(max_length=10, choices=medium_actions, default='Inbound')
+    medium_type = models.CharField(max_length=10, choices=medium_types, default='Email')
+    medium_status = models.CharField(max_length=10, choices=medium_statuses, default='Success')
     remainder_date = models.DateTimeField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
 
