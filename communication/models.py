@@ -49,18 +49,21 @@ class Process(models.Model):
         ordering = ('-created',)
 
     def __str__(self):
-        return "{}-{}".format(self.client_name, self.created)
+        return "{}".format(self.client_name)
 
 # if stage = Suspecting, return datefield
 # if stage = Prospecting, return Charfield
 
 class Salestage(models.Model):
-    stage = models.CharField(max_length=15, choices=sales_stages, default='Suspecting')
+    stage = models.CharField(max_length=15, default="Suspecting")
+
+    def __str__(self):
+        return "{}".format(self.stage)
 
 
 class Stageaction(models.Model):
     action_name = models.CharField(max_length=100, default="Sample action")
-    #salestage = models.ForeignKey(Salestage, on_delete=models.CASCADE)
+    salestage = models.ForeignKey(Salestage, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "{}-{}".format(self.action_name)
+        return "{}".format(self.action_name)
