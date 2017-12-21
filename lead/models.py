@@ -12,15 +12,26 @@ SERVICE_CHOICES = (
 class Process(models.Model):
     service = models.CharField(max_length=15, choices=SERVICE_CHOICES)
     income = models.IntegerField(default=0)
+    discount = models.IntegerField(default=0)
+    tax_percent = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(25)])
     unit = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     bulk = models.BooleanField(default=False)
     stage = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(10)])
     created = models.DateTimeField(auto_now_add=True)
 
+    def grand_total(self):
+        return (self.income - self.discount + (self.tax_percent*self.income)/100)
+
     def clean(self):
         # Don't allow Suspecting entries to have a remainder_date.
         if self.service == 'Hardware' and self.stage>5:
             raise ValidationError({'service': _('Hardware service has no more than 5 stages.')})
+
+        if self.bulk == 0 and self.stage>1:
+            raise ValidationError({'bulk': _('Items not purchased in bulk but Unit is defined more than 1.')})
+
+        if self.bulk == 1 and self.stage==1:
+            raise ValidationError({'bulk': _('Items purchased in bulk but unit is equal to 1.')})
 
     #To call the model clean method we will override save method.
     def save(self, *args, **kwargs):
