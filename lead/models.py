@@ -21,7 +21,6 @@ class Process(models.Model):
     unit = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     stage = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
-    # lead_type = models.CharField(max_length=7, choices=LEAD_TYPE_CHOICES)
     bulk = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
 
