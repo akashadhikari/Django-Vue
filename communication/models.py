@@ -53,7 +53,7 @@ class Stageaction(models.Model):
 
 from mptt.models import MPTTModel, TreeForeignKey
 
-class Genre(MPTTModel):
+class Celestial(MPTTModel):
     name = models.CharField(max_length=50, unique=True)
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children', db_index=True)
 
@@ -61,4 +61,4 @@ class Genre(MPTTModel):
         order_insertion_by = ['name']
 
     def __str__(self):
-        return "{}-{}".format(self.name, self.parent)
+        return "{}>{}".format(self.parent, self.name)
