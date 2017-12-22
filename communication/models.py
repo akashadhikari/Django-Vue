@@ -19,12 +19,6 @@ medium_statuses = (
     ('Failure', 'Failure'),
 )
 
-sales_stages = (
-    ('Suspecting', 'Suspecting'),
-    ('Prospecting', 'Prospecting'),
-    ('Approaching', 'Approaching'),
-)
-
 class Salestage(models.Model):
     stage = models.CharField(max_length=15, default="Suspecting")
 

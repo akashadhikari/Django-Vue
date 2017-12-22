@@ -39,7 +39,7 @@ class Process(models.Model):
         return super(Process, self).save(*args, **kwargs)
 
     def __str__(self):
-        return "{} by {}".format(self.service, self.created)
+        return "{} at stage {}".format(self.service, self.stage)
 
     class Meta:
         ordering = ('-created',)
