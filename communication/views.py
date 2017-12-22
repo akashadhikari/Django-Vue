@@ -1,5 +1,5 @@
 from rest_framework import viewsets, generics
-from .models import Process
+from .models import Process, Genre
 
 from .serializers import ProcessSerializer
 
