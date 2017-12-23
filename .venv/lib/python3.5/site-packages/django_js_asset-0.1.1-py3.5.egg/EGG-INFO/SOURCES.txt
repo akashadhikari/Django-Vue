@@ -1,0 +1,12 @@
+LICENSE
+MANIFEST.in
+README.rst
+setup.cfg
+setup.py
+django_js_asset.egg-info/PKG-INFO
+django_js_asset.egg-info/SOURCES.txt
+django_js_asset.egg-info/dependency_links.txt
+django_js_asset.egg-info/not-zip-safe
+django_js_asset.egg-info/top_level.txt
+js_asset/__init__.py
+js_asset/js.py
