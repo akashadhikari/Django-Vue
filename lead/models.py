@@ -61,10 +61,10 @@ class BaseTreeNode(PolymorphicMPTTModel):
         verbose_name_plural = _("Tree nodes")
 
 
-# Create 3 derived models for the tree nodes:
+# Create 2 derived models for the tree nodes:
 
 class CategoryNode(BaseTreeNode):
-    opening_title = models.CharField(_("Opening title"), max_length=200)
+    opening_title = models.CharField(_("Description"), max_length=200)
 
     class Meta:
         verbose_name = _("Category node")
@@ -80,4 +80,3 @@ class TextNode(BaseTreeNode):
     class Meta:
         verbose_name = _("Text node")
         verbose_name_plural = _("Text nodes")
-

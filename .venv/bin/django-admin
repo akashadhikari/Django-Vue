@@ -1,11 +1,10 @@
-#!/home/akash/Desktop/djangovuecrm/crm/.venv/bin/python3
-
-# -*- coding: utf-8 -*-
-import re
+#!/home/akash/Desktop/testing/.venv/bin/python3
+# EASY-INSTALL-ENTRY-SCRIPT: 'Django==1.11.7','console_scripts','django-admin'
+__requires__ = 'Django==1.11.7'
 import sys
-
-from django.core.management import execute_from_command_line
+from pkg_resources import load_entry_point
 
 if __name__ == '__main__':
-    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
-    sys.exit(execute_from_command_line())
+    sys.exit(
+        load_entry_point('Django==1.11.7', 'console_scripts', 'django-admin')()
+    )

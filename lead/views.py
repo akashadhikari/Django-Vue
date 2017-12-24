@@ -1,7 +1,7 @@
 from rest_framework import viewsets, generics
-from .models import Process
+from .models import Process, BaseTreeNode
 
-from .serializers import ProcessSerializer
+from .serializers import ProcessSerializer, BaseTreeNodeSerializer
 
 class ProcessListViewSet(generics.ListCreateAPIView):
     queryset = Process.objects.all()
@@ -16,3 +16,8 @@ class ProcessDetailsViewSet(generics.RetrieveUpdateDestroyAPIView):
 
     queryset = Process.objects.all()
     serializer_class = ProcessSerializer
+
+class BaseTreeNodeView(generics.ListCreateAPIView):
+    queryset = BaseTreeNode.objects.all()
+    queryset = queryset.toplevel()
+    serializer_class = BaseTreeNodeSerializer

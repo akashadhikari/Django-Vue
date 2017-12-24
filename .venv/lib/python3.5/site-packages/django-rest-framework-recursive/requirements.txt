@@ -1,0 +1,11 @@
+# Minimum Django and REST framework version
+Django>=1.6
+djangorestframework>=3.0.0
+
+# Test requirements
+pytest-django==2.9.1
+pytest==2.8.5
+pytest-cov==2.2.0
+
+# wheel for PyPI installs
+wheel==0.24.0
