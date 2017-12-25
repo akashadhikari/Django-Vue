@@ -43,3 +43,5 @@ npm run e2e
 # run all tests
 npm test
 ```
+## Additional libraries
+django-filter, django-polymorphic-tree, django_filter-2.0.0.dev1-py3.5
