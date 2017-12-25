@@ -1,0 +1,182 @@
+=================
+FilterSet Options
+=================
+
+This document provides a guide on using additional FilterSet features.
+
+Meta options
+------------
+
+- :ref:`model <model>`
+- :ref:`fields <fields>`
+- :ref:`exclude <exclude>`
+- :ref:`form <form>`
+- :ref:`filter_overrides <filter_overrides>`
+
+
+.. _model:
+
+Automatic filter generation with ``model``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``FilterSet`` is capable of automatically generating filters for a given
+``model``'s fields. Similar to Django's ``ModelForm``, filters are created
+based on the underlying model field's type. This option must be combined with
+either the ``fields`` or ``exclude`` option, which is the same requirement for
+Django's ``ModelForm`` class, detailed `here`__.
+
+__ https://docs.djangoproject.com/en/dev/topics/forms/modelforms/#selecting-the-fields-to-use
+
+.. code-block:: python
+
+    class UserFilter(django_filters.FilterSet):
+        class Meta:
+            model = User
+            fields = ['username', 'last_login']
+
+
+.. _fields:
+
+Declaring filterable ``fields``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``fields`` option is combined with ``model`` to automatically generate
+filters. Note that generated filters will not overwrite filters declared on
+the ``FilterSet``. The ``fields`` option accepts two syntaxes:
+
+* a list of field names
+* a dictionary of field names mapped to a list of lookups
+
+.. code-block:: python
+
+    class UserFilter(django_filters.FilterSet):
+        class Meta:
+            model = User
+            fields = ['username', 'last_login']
+
+    # or
+
+    class UserFilter(django_filters.FilterSet):
+        class Meta:
+            model = User
+            fields = {
+                'username': ['exact', 'contains'],
+                'last_login': ['exact', 'year__gt'],
+            }
+
+The list syntax will create an ``exact`` lookup filter for each field included
+in ``fields``. The dictionary syntax will create a filter for each lookup
+expression declared for its corresponding model field. These expressions may
+include both transforms and lookups, as detailed in the `lookup reference`__.
+
+__ https://docs.djangoproject.com/en/dev/ref/models/lookups/#module-django.db.models.lookups
+
+
+.. _exclude:
+
+Disable filter fields with ``exclude``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``exclude`` option accepts a blacklist of field names to exclude from
+automatic filter generation. Note that this option will not disable filters
+declared directly  on the ``FilterSet``.
+
+.. code-block:: python
+
+    class UserFilter(django_filters.FilterSet):
+        class Meta:
+            model = User
+            exclude = ['password']
+
+
+.. _form:
+
+Custom Forms using ``form``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The inner ``Meta`` class also takes an optional ``form`` argument.  This is a
+form class from which ``FilterSet.form`` will subclass.  This works similar to
+the ``form`` option on a ``ModelAdmin.``
+
+
+.. _filter_overrides:
+
+Customise filter generation with ``filter_overrides``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The inner ``Meta`` class also takes an optional ``filter_overrides`` argument.
+This is a map of model fields to filter classes with options::
+
+   class ProductFilter(django_filters.FilterSet):
+
+        class Meta:
+            model = Product
+            fields = ['name', 'release_date']
+            filter_overrides = {
+                models.CharField: {
+                    'filter_class': django_filters.CharFilter,
+                    'extra': lambda f: {
+                        'lookup_expr': 'icontains',
+                    },
+                },
+                models.BooleanField: {
+                    'filter_class': django_filters.BooleanFilter,
+                    'extra': lambda f: {
+                        'widget': forms.CheckboxInput,
+                    },
+                },
+            }
+
+Overriding ``FilterSet`` methods
+--------------------------------
+
+When overriding classmethods, calling ``super(MyFilterSet, cls)`` may result
+in a ``NameError`` exception. This is due to the ``FilterSetMetaclass`` calling
+these classmethods before the ``FilterSet`` class has been fully created.
+There are two recommmended workarounds:
+
+1. If using python 3.6 or newer, use the argumentless ``super()`` syntax.
+2. For older versions of python, use an intermediate class. Ex::
+
+    class Intermediate(django_filters.FilterSet):
+
+        @classmethod
+        def method(cls, arg):
+            super(Intermediate, cls).method(arg)
+            ...
+
+    class ProductFilter(Intermediate):
+        class Meta:
+            model = Product
+            fields = ['...']
+
+``filter_for_lookup()``
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Prior to version 0.13.0, filter generation did not take into account the
+``lookup_expr`` used. This commonly caused malformed filters to be generated
+for 'isnull', 'in', and 'range' lookups (as well as transformed lookups). The
+current implementation provides the following behavior:
+
+- 'isnull' lookups return a ``BooleanFilter``
+- 'in' lookups return a filter derived from the CSV-based ``BaseInFilter``.
+- 'range' lookups return a filter derived from the CSV-based ``BaseRangeFilter``.
+
+If you want to override the ``filter_class`` and ``params`` used to instantiate
+filters for a model field, you can override ``filter_for_lookup()``. Ex::
+
+    class ProductFilter(django_filters.FilterSet):
+        class Meta:
+            model = Product
+            fields = {
+                'release_date': ['exact', 'range'],
+            }
+
+        @classmethod
+        def filter_for_lookup(cls, f, lookup_type):
+            # override date range lookups
+            if isinstance(f, models.DateField) and lookup_type == 'range':
+                return django_filters.DateRangeFilter, {}
+
+            # use default behavior otherwise
+            return super().filter_for_lookup(f, lookup_type)

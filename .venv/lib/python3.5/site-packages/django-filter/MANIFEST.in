@@ -1,0 +1,14 @@
+include AUTHORS
+include CHANGES.rst
+include LICENSE
+include README.rst
+include runshell.py
+include runtests.py
+recursive-include docs *
+recursive-include requirements *
+recursive-include tests *
+recursive-include django_filters/locale *
+recursive-include django_filters/templates *.html
+prune docs/_build
+global-exclude __pycache__
+global-exclude *.py[co]

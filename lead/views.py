@@ -1,5 +1,8 @@
 from rest_framework import viewsets, generics
 from .models import Process, BaseTreeNode
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
+
 
 from .serializers import ProcessSerializer, BaseTreeNodeSerializer
 
@@ -21,3 +24,5 @@ class BaseTreeNodeView(generics.ListCreateAPIView):
     queryset = BaseTreeNode.objects.all()
     queryset = queryset.toplevel()
     serializer_class = BaseTreeNodeSerializer
+    filter_backends = (filters.SearchFilter, filters.OrderingFilter)
+    search_fields = ('id', 'title')

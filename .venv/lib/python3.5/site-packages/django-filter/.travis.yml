@@ -1,0 +1,31 @@
+sudo: false
+
+language: python
+python:
+  - "3.4"
+  - "3.5"
+  - "3.6"
+
+cache: pip
+
+install:
+  - pip install coverage detox tox-travis tox-venv
+
+script:
+  - coverage erase
+  - detox
+
+matrix:
+  include:
+    - python: 3.6
+      env: TOXENV=isort
+    - python: 3.6
+      env: TOXENV=warnings
+  allow_failures:
+    - env: TOXENV=warnings
+
+after_success:
+  - coverage combine --append
+  - coverage report -m
+  - pip install codecov
+  - codecov

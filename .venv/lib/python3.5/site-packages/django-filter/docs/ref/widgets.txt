@@ -1,0 +1,88 @@
+================
+Widget Reference
+================
+
+This is a reference document with a list of the provided widgets and their
+arguments.
+
+
+.. _link-widget:
+
+``LinkWidget``
+~~~~~~~~~~~~~~
+
+This widget renders each option as a link, instead of an actual <input>.  It has
+one method that you can override for additional customizability.
+``option_string()`` should return a string with 3 Python keyword argument
+placeholders:
+
+1. ``attrs``: This is a string with all the attributes that will be on the
+   final ``<a>`` tag.
+2. ``query_string``: This is the query string for use in the ``href``
+   option on the ``<a>`` element.
+3. ``label``: This is the text to be displayed to the user.
+
+
+.. _boolean-widget:
+
+``BooleanWidget``
+~~~~~~~~~~~~~~~~~
+
+This widget converts its input into Python's True/False values. It will convert
+all case variations of ``True`` and ``False`` into the internal Python values.
+To use it, pass this into the ``widgets`` argument of the ``BooleanFilter``:
+
+.. code-block:: python
+
+  active = BooleanFilter(widget=BooleanWidget())
+
+
+.. _csv-widget:
+
+``CSVWidget``
+~~~~~~~~~~~~~
+
+This widget expects a comma separated value and converts it into a list of
+string values. It is expected that the field class handle a list of values as
+well as type conversion.
+
+
+.. _range-widget:
+
+``RangeWidget``
+~~~~~~~~~~~~~~~
+
+This widget is used with ``RangeFilter`` and its subclasses. It generates two
+form input elements which generally act as start/end values in a range.
+Under the hood, it is django's ``forms.TextInput`` widget and excepts
+the same arguments and values. To use it, pass it to ``widget`` argument of
+a ``RangeField``:
+
+.. code-block:: python
+
+  date_range = DateFromToRangeFilter(widget=RangeWidget(attrs={'placeholder': 'YYYY/MM/DD'}))
+
+
+``SuffixedMultiWidget``
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Extends Django's builtin ``MultiWidget`` to append custom suffixes instead of
+indices. For example, take a range widget that accepts minimum and maximum
+bounds. By default, the resulting query params would look like the following:
+
+.. code-block:: http
+
+    GET /products?price_0=10&price_1=25 HTTP/1.1
+
+By using ``SuffixedMultiWidget`` instead, you can provide human-friendly suffixes.
+
+.. code-block:: python
+
+    class RangeWidget(SuffixedMultiWidget):
+        suffixes = ['min', 'max']
+
+The query names are now a little more ergonomic.
+
+.. code-block:: http
+
+    GET /products?price_min=10&price_max=25 HTTP/1.1

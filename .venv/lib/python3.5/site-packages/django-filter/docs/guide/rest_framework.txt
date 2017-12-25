@@ -1,0 +1,189 @@
+====================
+Integration with DRF
+====================
+
+Integration with `Django Rest Framework`__ is provided through a DRF-specific ``FilterSet`` and a `filter backend`__. These may be found in the ``rest_framework`` sub-package.
+
+__ http://www.django-rest-framework.org/
+__ http://www.django-rest-framework.org/api-guide/filtering/
+
+
+Quickstart
+----------
+
+Using the new ``FilterSet`` simply requires changing the import path. Instead of importing from ``django_filters``, import from the ``rest_framework`` sub-package.
+
+.. code-block:: python
+
+    from django_filters import rest_framework as filters
+
+    class ProductFilter(filters.FilterSet):
+        ...
+
+Your view class will also need to add ``DjangoFilterBackend`` to the ``filter_backends``.
+
+.. code-block:: python
+
+    from django_filters import rest_framework as filters
+
+    class ProductList(generics.ListAPIView):
+        queryset = Product.objects.all()
+        serializer_class = ProductSerializer
+        filter_backends = (filters.DjangoFilterBackend,)
+        filter_fields = ('category', 'in_stock')
+
+If you want to use the django-filter backend by default, add it to the ``DEFAULT_FILTER_BACKENDS`` setting.
+
+.. code-block:: python
+
+    # settings.py
+    INSTALLED_APPS = [
+        ...
+        'rest_framework',
+        'django_filters',
+    ]
+
+    REST_FRAMEWORK = {
+        'DEFAULT_FILTER_BACKENDS': (
+            'django_filters.rest_framework.DjangoFilterBackend',
+            ...
+        ),
+    }
+
+
+Adding a FilterSet with ``filter_class``
+----------------------------------------
+
+To enable filtering with a ``FilterSet``, add it to the ``filter_class`` parameter on your view class.
+
+.. code-block:: python
+
+    from rest_framework import generics
+    from django_filters import rest_framework as filters
+    from myapp import Product
+
+
+    class ProductFilter(filters.FilterSet):
+        min_price = filters.NumberFilter(name="price", lookup_expr='gte')
+        max_price = filters.NumberFilter(name="price", lookup_expr='lte')
+
+        class Meta:
+            model = Product
+            fields = ['category', 'in_stock', 'min_price', 'max_price']
+
+
+    class ProductList(generics.ListAPIView):
+        queryset = Product.objects.all()
+        serializer_class = ProductSerializer
+        filter_backends = (filters.DjangoFilterBackend,)
+        filter_class = ProductFilter
+
+
+Using the ``filter_fields`` shortcut
+------------------------------------
+
+You may bypass creating a ``FilterSet`` by instead adding ``filter_fields`` to your view class. This is equivalent to creating a FilterSet with just :ref:`Meta.fields <fields>`.
+
+
+.. code-block:: python
+
+    from rest_framework import generics
+    from django_filters import rest_framework as filters
+    from myapp import Product
+
+
+    class ProductList(generics.ListAPIView):
+        queryset = Product.objects.all()
+        filter_backends = (filters.DjangoFilterBackend,)
+        filter_fields = ('category', 'in_stock')
+
+
+    # Equivalent FilterSet:
+    class ProductFilter(filters.FilterSet):
+        class Meta:
+            model = Product
+            fields = ('category', 'in_stock')
+
+
+Schema Generation with Core API
+-------------------------------
+
+The backend class integrates with DRF's schema generation by implementing ``get_schema_fields()``. This is automatically enabled when Core API is installed. Schema generation usually functions seamlessly, however the implementation does expect to invoke the view's ``get_queryset()`` method. There is a caveat in that views are artificially constructed during schema generation, so the ``args`` and ``kwargs`` attributes will be empty. If you depend on arguments parsed from the URL, you will need to handle their absence in ``get_queryset()``.
+
+For example, your get queryset method may look like this:
+
+.. code-block:: python
+
+    class IssueViewSet(views.ModelViewSet):
+        queryset = models.Issue.objects.all()
+
+        def get_project(self):
+            return models.Project.objects.get(pk=self.kwargs['project_id'])
+
+        def get_queryset(self):
+            project = self.get_project()
+
+            return self.queryset \
+                .filter(project=project) \
+                .filter(author=self.request.user)
+
+This could be rewritten like so:
+
+.. code-block:: python
+
+    class IssueViewSet(views.ModelViewSet):
+        queryset = models.Issue.objects.all()
+
+        def get_project(self):
+            try:
+                return models.Project.objects.get(pk=self.kwargs['project_id'])
+            except models.Project.DoesNotExist:
+                return None
+
+        def get_queryset(self):
+            project = self.get_project()
+
+            if project is None:
+                return self.queryset.none()
+
+            return self.queryset \
+                .filter(project=project) \
+                .filter(author=self.request.user)
+
+Or more simply as:
+
+.. code-block:: python
+
+    class IssueViewSet(views.ModelViewSet):
+        queryset = models.Issue.objects.all()
+
+        def get_queryset(self):
+            # project_id may be None
+            return self.queryset \
+                .filter(project_id=self.kwargs.get('project_id')) \
+                .filter(author=self.request.user)
+
+
+Crispy Forms
+------------
+
+If you are using DRF's browsable API or admin API you may also want to install ``django-crispy-forms``, which will enhance the presentation of the filter forms in HTML views, by allowing them to render Bootstrap 3 HTML. Note that this isn't actively supported, although pull requests for bug fixes are welcome.
+
+.. code-block:: bash
+
+    pip install django-crispy-forms
+
+With crispy forms installed and added to Django's ``INSTALLED_APPS``, the browsable API will present a filtering control for ``DjangoFilterBackend``, like so:
+
+.. image:: ../assets/form.png
+
+
+Additional ``FilterSet`` Features
+---------------------------------
+
+The following features are specific to the rest framework FilterSet:
+
+- ``BooleanFilter``'s use the API-friendly ``BooleanWidget``, which accepts lowercase ``true``/``false``.
+- Filter generation uses ``IsoDateTimeFilter`` for datetime model fields.
+- Raised ``ValidationError``'s are reraised as their DRF equivalent. This behavior is useful when setting FilterSet
+  strictness to ``STRICTNESS.RAISE_VALIDATION_ERROR``.

@@ -1,0 +1,788 @@
+================
+Filter Reference
+================
+
+This is a reference document with a list of the filters and their arguments.
+
+.. _core-arguments:
+
+Core Arguments
+--------------
+
+The following are the core arguments that apply to all filters.
+
+``name``
+~~~~~~~~
+
+The name of the field this filter is supposed to filter on, if this is not
+provided it automatically becomes the filter's name on the ``FilterSet``.
+You can traverse "relationship paths" using Django's ``__`` syntax to filter
+fields on a related model. eg, ``manufacturer__name``.
+
+``label``
+~~~~~~~~~
+
+The label as it will apear in the HTML, analogous to a form field's label
+argument. If a label is not provided, a verbose label will be generated based
+on the field ``name`` and the parts of the ``lookup_expr``.
+(See: :ref:`verbose-lookups-setting`).
+
+``widget``
+~~~~~~~~~~
+
+The django.form Widget class which will represent the ``Filter``.  In addition
+to the widgets that are included with Django that you can use there are
+additional ones that django-filter provides which may be useful:
+
+    * :ref:`LinkWidget <link-widget>` -- this displays the options in a manner
+      similar to the way the Django Admin does, as a series of links. The link
+      for the selected option will have ``class="selected"``.
+    * :ref:`BooleanWidget <boolean-widget>` -- this widget converts its input
+      into Python's True/False values. It will convert all case variations of
+      ``True`` and ``False`` into the internal Python values.
+    * :ref:`CSVWidget <csv-widget>` -- this widget expects a comma separated
+      value and converts it into a list of string values. It is expected that
+      the field class handle a list of values as well as type conversion.
+    * :ref:`RangeWidget <range-widget>` -- this widget is used with ``RangeFilter``
+      to generate two form input elements using a single field.
+
+.. _filter-method:
+
+``method``
+~~~~~~~~~~
+
+An optional argument that tells the filter how to handle the queryset. It can
+accept either a callable or the name of a method on the ``FilterSet``. The
+method receives a ``QuerySet``, the name of the model field to filter on, and
+the value to filter with. It should return a ``Queryset`` that is filtered
+appropriately.
+
+The passed in value is validated and cleaned by the filter's ``field_class``,
+so raw value transformation and empty value checking should be unnecessary.
+
+.. code-block:: python
+
+    class F(FilterSet):
+        """Filter for Books by if books are published or not"""
+        published = BooleanFilter(name='published_on', method='filter_published')
+
+        def filter_published(self, queryset, name, value):
+            # construct the full lookup expression.
+            lookup = '__'.join([name, 'isnull'])
+            return queryset.filter(**{lookup: False})
+
+            # alternatively, it may not be necessary to construct the lookup.
+            return queryset.filter(published_on__isnull=False)
+
+        class Meta:
+            model = Book
+            fields = ['published']
+
+
+    # Callables may also be defined out of the class scope.
+    def filter_not_empty(queryset, name, value):
+        lookup = '__'.join([name, 'isnull'])
+        return queryset.filter(**{lookup: False})
+
+    class F(FilterSet):
+        """Filter for Books by if books are published or not"""
+        published = BooleanFilter(name='published_on', method=filter_not_empty)
+
+        class Meta:
+            model = Book
+            fields = ['published']
+
+``lookup_expr``
+~~~~~~~~~~~~~~~
+
+The lookup expression that should be performed using `Django's ORM`_.
+
+.. _`Django's ORM`: https://docs.djangoproject.com/en/dev/ref/models/querysets/#field-lookups
+
+A ``list`` or ``tuple`` of lookup types is also accepted, allowing the user to
+select the lookup from a dropdown. The list of lookup types are filtered against
+``filters.LOOKUP_TYPES``. If `lookup_expr=None` is passed, then a list of all lookup
+types will be generated::
+
+    class ProductFilter(django_filters.FilterSet):
+        name = django_filters.CharFilter(lookup_expr=['exact', 'iexact'])
+
+You can enable custom lookups by adding them to ``LOOKUP_TYPES``::
+
+    from django_filters import filters
+
+    filters.LOOKUP_TYPES = ['gt', 'gte', 'lt', 'lte', 'custom_lookup_type']
+
+Additionally, you can provide human-friendly help text by overriding ``LOOKUP_TYPES``::
+
+    # filters.py
+    from django_filters import filters
+
+    filters.LOOKUP_TYPES = [
+        ('', '---------'),
+        ('exact', 'Is equal to'),
+        ('not_exact', 'Is not equal to'),
+        ('lt', 'Lesser than'),
+        ('gt', 'Greater than'),
+        ('gte', 'Greater than or equal to'),
+        ('lte', 'Lesser than or equal to'),
+        ('startswith', 'Starts with'),
+        ('endswith', 'Ends with'),
+        ('contains', 'Contains'),
+        ('not_contains', 'Does not contain'),
+    ]
+
+
+``distinct``
+~~~~~~~~~~~~
+
+A boolean value that specifies whether the Filter will use distinct on the
+queryset. This option can be used to eliminate duplicate results when using filters that span related models. Defaults to ``False``.
+
+``exclude``
+~~~~~~~~~~~
+
+A boolean value that specifies whether the Filter should use ``filter`` or ``exclude`` on the queryset.
+Defaults to ``False``.
+
+
+``**kwargs``
+~~~~~~~~~~~~
+
+Any additional keyword arguments are stored as the ``extra`` parameter on the filter. They are provided to the accompanying form Field and can be used to provide arguments like ``choices``.
+
+
+ModelChoiceFilter and ModelMultipleChoiceFilter arguments
+---------------------------------------------------------
+
+These arguments apply specifically to ModelChoiceFilter and
+ModelMultipleChoiceFilter only.
+
+``queryset``
+~~~~~~~~~~~~
+
+``ModelChoiceFilter`` and ``ModelMultipleChoiceFilter`` require a queryset to
+operate on which must be passed as a kwarg.
+
+``to_field_name``
+~~~~~~~~~~~~~~~~~
+
+If you pass in ``to_field_name`` (which gets forwarded to the Django field),
+it will be used also in the default ``get_filter_predicate`` implementation
+as the model's attribute.
+
+
+Filters
+-------
+
+``CharFilter``
+~~~~~~~~~~~~~~
+
+This filter does simple character matches, used with ``CharField`` and
+``TextField`` by default.
+
+``UUIDFilter``
+~~~~~~~~~~~~~~
+
+This filter matches UUID values, used with ``models.UUIDField`` by default.
+
+``BooleanFilter``
+~~~~~~~~~~~~~~~~~
+
+This filter matches a boolean, either ``True`` or ``False``, used with
+``BooleanField`` and ``NullBooleanField`` by default.
+
+.. _choice-filter:
+
+``ChoiceFilter``
+~~~~~~~~~~~~~~~~
+
+This filter matches values in its ``choices`` argument. The ``choices`` must be
+explicitly passed when the filter is declared on the ``FilterSet``. For example,
+
+.. code-block:: python
+
+    class User(models.Model):
+        username = models.CharField(max_length=255)
+        first_name = SubCharField(max_length=100)
+        last_name = SubSubCharField(max_length=100)
+
+        status = models.IntegerField(choices=STATUS_CHOICES, default=0)
+
+    STATUS_CHOICES = (
+        (0, 'Regular'),
+        (1, 'Manager'),
+        (2, 'Admin'),
+    )
+
+    class F(FilterSet):
+        status = ChoiceFilter(choices=STATUS_CHOICES)
+        class Meta:
+            model = User
+            fields = ['status']
+
+
+``ChoiceFilter`` also has arguments that enable a choice for not filtering, as
+well as a choice for filtering by ``None`` values. Each of the arguments have a
+corresponding global setting (:doc:`/ref/settings`).
+
+* ``empty_label``: The display label to use for the select choice to not filter.
+  The choice may be disabled by setting this argument to ``None``. Defaults to
+  ``FILTERS_EMPTY_CHOICE_LABEL``.
+* ``null_label``: The display label to use for the choice to filter by ``None``
+  values. The choice may be disabled by setting this argument to ``None``.
+  Defaults to ``FILTERS_NULL_CHOICE_LABEL``.
+* ``null_value``: The special value to match to enable filtering by ``None``
+  values. This value defaults ``FILTERS_NULL_CHOICE_VALUE`` and needs to be
+  a non-empty value (``''``, ``None``, ``[]``, ``()``, ``{}``).
+
+
+``TypedChoiceFilter``
+~~~~~~~~~~~~~~~~~~~~~
+
+The same as ``ChoiceFilter`` with the added possibility to convert value to
+match against. This could be done by using `coerce` parameter.
+An example use-case is limiting boolean choices to match against so only
+some predefined strings could be used as input of a boolean filter::
+
+    import django_filters
+    from distutils.util import strtobool
+
+    BOOLEAN_CHOICES = (('false', 'False'), ('true', 'True'),)
+
+    class YourFilterSet(django_filters.FilterSet):
+        ...
+        flag = django_filters.TypedChoiceFilter(choices=BOOLEAN_CHOICES,
+                                                coerce=strtobool)
+
+
+``MultipleChoiceFilter``
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The same as ``ChoiceFilter`` except the user can select multiple choices
+and the filter will form the OR of these choices by default to match items.
+The filter will form the AND of the selected choices when the ``conjoined=True``
+argument is passed to this class.
+
+Multiple choices are represented in the query string by reusing the same key with
+different values (e.g. ''?status=Regular&status=Admin'').
+
+``distinct`` defaults to ``True`` as to-many relationships will generally require this.
+
+Advanced Use: Depending on your application logic, when all or no choices are
+selected, filtering may be a noop. In this case you may wish to avoid the
+filtering overhead, particularly of the `distinct` call.
+
+Set `always_filter` to False after instantiation to enable the default `is_noop`
+test.
+
+Override `is_noop` if you require a different test for your application.
+
+
+``TypedMultipleChoiceFilter``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Like ``MultipleChoiceFilter``, but in addition accepts the ``coerce`` parameter, as
+in ``TypedChoiceFilter``.
+
+
+``DateFilter``
+~~~~~~~~~~~~~~
+
+Matches on a date.  Used with ``DateField`` by default.
+
+
+``TimeFilter``
+~~~~~~~~~~~~~~
+
+Matches on a time.  Used with ``TimeField`` by default.
+
+
+``DateTimeFilter``
+~~~~~~~~~~~~~~~~~~
+
+Matches on a date and time.  Used with ``DateTimeField`` by default.
+
+
+``IsoDateTimeFilter``
+~~~~~~~~~~~~~~~~~~~~~
+
+Uses ``IsoDateTimeField`` to support filtering on ISO 8601 formatted dates, as are often
+used in APIs, and are employed by default by Django REST Framework.
+
+Example::
+
+    class F(FilterSet):
+        """Filter for Books by date published, using ISO 8601 formatted dates"""
+        published = IsoDateTimeFilter()
+
+        class Meta:
+            model = Book
+            fields = ['published']
+
+
+``DurationFilter``
+~~~~~~~~~~~~~~~~~~
+
+Matches on a duration.  Used with ``DurationField`` by default.
+
+Supports both Django ('%d %H:%M:%S.%f') and ISO 8601 formatted durations (but
+only the sections that are accepted by Python's timedelta, so no year, month,
+and week designators, e.g. 'P3DT10H22M').
+
+
+``ModelChoiceFilter``
+~~~~~~~~~~~~~~~~~~~~~
+
+Similar to a ``ChoiceFilter`` except it works with related models, used for
+``ForeignKey`` by default.
+
+If automatically instantiated, ``ModelChoiceFilter`` will use the default
+``QuerySet`` for the related field. If manually instantiated you **must**
+provide the ``queryset`` kwarg.
+
+Example::
+
+    class F(FilterSet):
+        """Filter for books by author"""
+        author = ModelChoiceFilter(queryset=Author.objects.all())
+
+        class Meta:
+            model = Book
+            fields = ['author']
+
+The ``queryset`` argument also supports callable behavior. If a callable is
+passed, it will be invoked with ``Filterset.request`` as its only argument.
+This allows you to easily filter by properties on the request object without
+having to override the ``FilterSet.__init__``.
+
+.. note::
+
+    You should expect that the `request` object may be `None`.
+
+.. code-block:: python
+
+    def departments(request):
+        if request is None:
+            return Department.objects.none()
+
+        company = request.user.company
+        return company.department_set.all()
+
+    class EmployeeFilter(filters.FilterSet):
+        department = filters.ModelChoiceFilter(queryset=departments)
+        ...
+
+
+``ModelMultipleChoiceFilter``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Similar to a ``MultipleChoiceFilter`` except it works with related models, used
+for ``ManyToManyField`` by default.
+
+As with ``ModelChoiceFilter``, if automatically instantiated,
+``ModelMultipleChoiceFilter`` will use the default ``QuerySet`` for the related
+field. If manually instantiated you **must** provide the ``queryset`` kwarg.
+Like ``ModelChoiceFilter``, the ``queryset`` argument has callable behavior.
+
+To use a custom field name for the lookup, you can use ``to_field_name``::
+
+    class FooFilter(BaseFilterSet):
+        foo = django_filters.filters.ModelMultipleChoiceFilter(
+            name='attr__uuid',
+            to_field_name='uuid',
+            queryset=Foo.objects.all(),
+        )
+
+If you want to use a custom queryset, e.g. to add annotated fields, this can be
+done as follows::
+
+    class MyMultipleChoiceFilter(django_filters.ModelMultipleChoiceFilter):
+        def get_filter_predicate(self, v):
+            return {'annotated_field': v.annotated_field}
+
+        def filter(self, qs, value):
+            if value:
+                qs = qs.annotate_with_custom_field()
+                qs = super().filter(qs, value)
+            return qs
+
+    foo = MyMultipleChoiceFilter(
+        to_field_name='annotated_field',
+        queryset=Model.objects.annotate_with_custom_field(),
+    )
+
+The ``annotate_with_custom_field`` method would be defined through a custom
+QuerySet, which then gets used as the model's manager::
+
+    class CustomQuerySet(models.QuerySet):
+        def annotate_with_custom_field(self):
+            return self.annotate(
+                custom_field=Case(
+                    When(foo__isnull=False,
+                         then=F('foo__uuid')),
+                    When(bar__isnull=False,
+                         then=F('bar__uuid')),
+                    default=None,
+                ),
+            )
+
+    class MyModel(models.Model):
+        objects = CustomQuerySet.as_manager()
+
+
+``NumberFilter``
+~~~~~~~~~~~~~~~~
+
+Filters based on a numerical value, used with ``IntegerField``, ``FloatField``,
+and ``DecimalField`` by default.
+
+``NumericRangeFilter``
+~~~~~~~~~~~~~~~~~~~~~~
+
+Filters where a value is between two numerical values, or greater than a minimum or less
+than a maximum where only one limit value is provided. This filter is designed to work
+with the Postgres Numerical Range Fields, including ``IntegerRangeField``,
+``BigIntegerRangeField`` and ``FloatRangeField`` (available since Django 1.8). The default
+widget used is the ``RangeField``.
+
+Regular field lookups are available in addition to several containment lookups, including
+``overlap``, ``contains``, and ``contained_by``. More details in the Django `docs`__.
+
+__ https://docs.djangoproject.com/en/1.8/ref/contrib/postgres/fields/#querying-range-fields
+
+If the lower limit value is provided, the filter automatically defaults to ``startswith``
+as the lookup and ``endswith`` if only the upper limit value is provided.
+
+``RangeFilter``
+~~~~~~~~~~~~~~~
+
+Filters where a value is between two numerical values, or greater than a minimum or less than a maximum where only one limit value is provided. ::
+
+    class F(FilterSet):
+        """Filter for Books by Price"""
+        price = RangeFilter()
+
+        class Meta:
+            model = Book
+            fields = ['price']
+
+    qs = Book.objects.all().order_by('title')
+
+    # Range: Books between 5€ and 15€
+    f = F({'price_min': '5', 'price_max': '15'}, queryset=qs)
+
+    # Min-Only: Books costing more the 11€
+    f = F({'price_min': '11'}, queryset=qs)
+
+    # Max-Only: Books costing less than 19€
+    f = F({'price_max': '19'}, queryset=qs)
+
+
+``DateRangeFilter``
+~~~~~~~~~~~~~~~~~~~
+
+Filter similar to the admin changelist date one, it has a number of common
+selections for working with date fields.
+
+``DateFromToRangeFilter``
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Similar to a ``RangeFilter`` except it uses dates instead of numerical values. It can be used with ``DateField``. It also works with ``DateTimeField``, but takes into consideration only the date.
+
+Example of using the ``DateField`` field::
+
+    class Comment(models.Model):
+        date = models.DateField()
+        time = models.TimeField()
+
+    class F(FilterSet):
+        date = DateFromToRangeFilter()
+
+        class Meta:
+            model = Comment
+            fields = ['date']
+
+    # Range: Comments added between 2016-01-01 and 2016-02-01
+    f = F({'date_after': '2016-01-01', 'date_before': '2016-02-01'})
+
+    # Min-Only: Comments added after 2016-01-01
+    f = F({'date_after': '2016-01-01'})
+
+    # Max-Only: Comments added before 2016-02-01
+    f = F({'date_before': '2016-02-01'})
+
+    .. note::
+        When filtering ranges that occurs on DST transition dates ``DateFromToRangeFilter`` will use the first valid hour of the day for start datetime and the last valid hour of the day for end datetime.
+        This is OK for most applications, but if you want to customize this behavior you must extend ``DateFromToRangeFilter`` and make a custom field for it.
+
+    .. warning::
+        If you're using Django prior to 1.9 you may hit ``AmbiguousTimeError`` or ``NonExistentTimeError`` when start/end date matches DST start/end respectively.
+        This occurs because versions before 1.9 don't allow to change the DST behavior for making a datetime aware.
+
+Example of using the ``DateTimeField`` field::
+
+    class Article(models.Model):
+        published = models.DateTimeField()
+
+    class F(FilterSet):
+        published = DateFromToRangeFilter()
+
+        class Meta:
+            model = Article
+            fields = ['published']
+
+    Article.objects.create(published='2016-01-01 8:00')
+    Article.objects.create(published='2016-01-20 10:00')
+    Article.objects.create(published='2016-02-10 12:00')
+
+    # Range: Articles published between 2016-01-01 and 2016-02-01
+    f = F({'published_after': '2016-01-01', 'published_before': '2016-02-01'})
+    assert len(f.qs) == 2
+
+    # Min-Only: Articles published after 2016-01-01
+    f = F({'published_after': '2016-01-01'})
+    assert len(f.qs) == 3
+
+    # Max-Only: Articles published before 2016-02-01
+    f = F({'published_before': '2016-02-01'})
+    assert len(f.qs) == 2
+
+``DateTimeFromToRangeFilter``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Similar to a ``RangeFilter`` except it uses datetime format values instead of numerical values. It can be used with ``DateTimeField``.
+
+Example::
+
+    class Article(models.Model):
+        published = models.DateTimeField()
+
+    class F(FilterSet):
+        published = DateTimeFromToRangeFilter()
+
+        class Meta:
+            model = Article
+            fields = ['published']
+
+    Article.objects.create(published='2016-01-01 8:00')
+    Article.objects.create(published='2016-01-01 9:30')
+    Article.objects.create(published='2016-01-02 8:00')
+
+    # Range: Articles published 2016-01-01 between 8:00 and 10:00
+    f = F({'published_after': '2016-01-01 8:00', 'published_before': '2016-01-01 10:00'})
+    assert len(f.qs) == 2
+
+    # Min-Only: Articles published after 2016-01-01 8:00
+    f = F({'published_after': '2016-01-01 8:00'})
+    assert len(f.qs) == 3
+
+    # Max-Only: Articles published before 2016-01-01 10:00
+    f = F({'published_before': '2016-01-01 10:00'})
+    assert len(f.qs) == 2
+
+``TimeRangeFilter``
+~~~~~~~~~~~~~~~~~~~
+
+Similar to a ``RangeFilter`` except it uses time format values instead of numerical values. It can be used with ``TimeField``.
+
+Example::
+
+    class Comment(models.Model):
+        date = models.DateField()
+        time = models.TimeField()
+
+    class F(FilterSet):
+        time = TimeRangeFilter()
+
+        class Meta:
+            model = Comment
+            fields = ['time']
+
+    # Range: Comments added between 8:00 and 10:00
+    f = F({'time_after': '8:00', 'time_before': '10:00'})
+
+    # Min-Only: Comments added after 8:00
+    f = F({'time_after': '8:00'})
+
+    # Max-Only: Comments added before 10:00
+    f = F({'time_before': '10:00'})
+
+``AllValuesFilter``
+~~~~~~~~~~~~~~~~~~~
+
+This is a ``ChoiceFilter`` whose choices are the current values in the
+database.  So if in the DB for the given field you have values of 5, 7, and 9
+each of those is present as an option.  This is similar to the default behavior
+of the admin.
+
+``AllValuesMultipleFilter``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This is a ``MultipleChoiceFilter`` whose choices are the current values in the
+database.  So if in the DB for the given field you have values of 5, 7, and 9
+each of those is present as an option.  This is similar to the default behavior
+of the admin.
+
+.. _base-in-filter:
+
+``BaseInFilter``
+~~~~~~~~~~~~~~~~
+
+This is a base class used for creating IN lookup filters. It is expected that
+this filter class is used in conjunction with another filter class, as this
+class **only** validates that the incoming value is comma-separated. The secondary
+filter is then used to validate the individual values.
+
+Example::
+
+    class NumberInFilter(BaseInFilter, NumberFilter):
+        pass
+
+    class F(FilterSet):
+        id__in = NumberInFilter(name='id', lookup_expr='in')
+
+        class Meta:
+            model = User
+
+    User.objects.create(username='alex')
+    User.objects.create(username='jacob')
+    User.objects.create(username='aaron')
+    User.objects.create(username='carl')
+
+    # In: User with IDs 1 and 3.
+    f = F({'id__in': '1,3'})
+    assert len(f.qs) == 2
+
+``BaseRangeFilter``
+~~~~~~~~~~~~~~~~~~~
+
+This is a base class used for creating RANGE lookup filters. It behaves
+identically to ``BaseInFilter`` with the exception that it expects only two
+comma-separated values.
+
+Example::
+
+    class NumberRangeFilter(BaseInFilter, NumberFilter):
+        pass
+
+    class F(FilterSet):
+        id__range = NumberRangeFilter(name='id', lookup_expr='range')
+
+        class Meta:
+            model = User
+
+    User.objects.create(username='alex')
+    User.objects.create(username='jacob')
+    User.objects.create(username='aaron')
+    User.objects.create(username='carl')
+
+    # Range: User with IDs between 1 and 3.
+    f = F({'id__range': '1,3'})
+    assert len(f.qs) == 3
+
+
+.. _ordering-filter:
+
+``OrderingFilter``
+~~~~~~~~~~~~~~~~~~
+
+Enable queryset ordering. As an extension of ``ChoiceFilter`` it accepts
+two additional arguments that are used to build the ordering choices.
+
+* ``fields`` is a mapping of {model field name: parameter name}. The
+  parameter names are exposed in the choices and mask/alias the field
+  names used in the ``order_by()`` call. Similar to field ``choices``,
+  ``fields`` accepts the 'list of two-tuples' syntax that retains order.
+  ``fields`` may also just be an iterable of strings. In this case, the
+  field names simply double as the exposed parameter names.
+
+* ``field_labels`` is an optional argument that allows you to customize
+  the display label for the corresponding parameter. It accepts a mapping
+  of {field name: human readable label}. Keep in mind that the key is the
+  field name, and not the exposed parameter name.
+
+.. code-block:: python
+
+    class UserFilter(FilterSet):
+        account = CharFilter(name='username')
+        status = NumberFilter(name='status')
+
+        o = OrderingFilter(
+            # tuple-mapping retains order
+            fields=(
+                ('username', 'account'),
+                ('first_name', 'first_name'),
+                ('last_name', 'last_name'),
+            ),
+
+            # labels do not need to retain order
+            field_labels={
+                'username': 'User account',
+            }
+        )
+
+        class Meta:
+            model = User
+            fields = ['first_name', 'last_name']
+
+    >>> UserFilter().filters['o'].field.choices
+    [
+        ('account', 'User account'),
+        ('-account', 'User account (descending)'),
+        ('first_name', 'First name'),
+        ('-first_name', 'First name (descending)'),
+        ('last_name', 'Last name'),
+        ('-last_name', 'Last name (descending)'),
+    ]
+
+Additionally, you can just provide your own ``choices`` if you require
+explicit control over the exposed options. For example, when you might
+want to disable descending sort options.
+
+.. code-block:: python
+
+    class UserFilter(FilterSet):
+        account = CharFilter(name='username')
+        status = NumberFilter(name='status')
+
+        o = OrderingFilter(
+            choices=(
+                ('account', 'Account'),
+            ),
+            fields={
+                'username': 'account',
+            },
+        )
+
+This filter is also CSV-based, and accepts multiple ordering params. The
+default select widget does not enable the use of this, but it is useful
+for APIs. ``SelectMultiple`` widgets are not compatible, given that they
+are not able to retain selection order.
+
+Adding Custom filter choices
+""""""""""""""""""""""""""""
+
+If you wish to sort by non-model fields, you'll need to add custom handling to an
+``OrderingFilter`` subclass. For example, if you want to sort by a computed
+'relevance' factor, you would need to do something like the following:
+
+.. code-block:: python
+
+    class CustomOrderingFilter(django_filters.OrderingFilter):
+
+        def __init__(self, *args, **kwargs):
+            super(CustomOrderingFilter, self).__init__(*args, **kwargs)
+            self.extra['choices'] += [
+                ('relevance', 'Relevance'),
+                ('-relevance', 'Relevance (descending)'),
+            ]
+
+
+        def filter(self, qs, value):
+            # OrderingFilter is CSV-based, so `value` is a list
+            if any(v in ['relevance', '-relevance'] for v in value):
+                # sort queryset by relevance
+                return ...
+
+            return super(CustomOrderingFilter, self).filter(qs, value)
