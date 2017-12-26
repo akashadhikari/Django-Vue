@@ -9,3 +9,9 @@ class BaseTreeNodeView(generics.ListCreateAPIView):
     serializer_class = BaseTreeNodeSerializer
     filter_backends = (filters.SearchFilter, filters.OrderingFilter)
     search_fields = ('id', 'title')
+
+# class BaseTreeNodeDetailsView(generics.RetrieveUpdateDestroyAPIView):
+
+#     queryset = BaseTreeNode.objects.all()
+#     queryset = queryset.toplevel()
+#     serializer_class = BaseTreeNode
