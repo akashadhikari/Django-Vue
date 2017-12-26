@@ -18,7 +18,7 @@ class BaseChildAdmin(PolymorphicMPTTChildModelAdmin):
 
 # Optionally some custom admin code
 
-class TextNodeAdmin(BaseChildAdmin):
+class DateNodeAdmin(BaseChildAdmin):
     pass
 
 
@@ -28,7 +28,7 @@ class TreeNodeParentAdmin(PolymorphicMPTTParentModelAdmin):
     base_model = models.BaseTreeNode
     child_models = (
         (models.CategoryNode, BaseChildAdmin),
-        (models.TextNode, TextNodeAdmin),  # custom admin allows custom edit/delete view.
+        (models.DateNode, DateNodeAdmin),  # custom admin allows custom edit/delete view.
     )
 
     list_display = ('title', 'actions_column',)
