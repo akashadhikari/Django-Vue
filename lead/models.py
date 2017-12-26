@@ -3,7 +3,6 @@ from django.db import models
 from rest_framework.compat import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
-from polymorphic_tree.models import PolymorphicMPTTModel, PolymorphicTreeForeignKey
 
 SERVICE_CHOICES = (
     ("Hardware", "Hardware"),
@@ -24,7 +23,7 @@ class Process(models.Model):
         return (self.income - self.discount + (self.tax_percent*self.income)/100)
 
     def clean(self):
-        # Don't allow Suspecting entries to have a remainder_date.
+        # Don't allow Hardware services to have stages more than 5.
         if self.service == 'Hardware' and self.stage>5:
             raise ValidationError({'service': _('Hardware service has no more than 5 stages.')})
 
@@ -45,38 +44,3 @@ class Process(models.Model):
     class Meta:
         ordering = ('-created',)
 
-######################################################## !!! Django Polymorphic !!! ########################################################
-
-# A base model for the tree:
-
-class BaseTreeNode(PolymorphicMPTTModel):
-    parent = PolymorphicTreeForeignKey('self', blank=True, null=True, related_name='children', verbose_name=_('parent'))
-    title = models.CharField(_("Title"), max_length=200)
-
-    def __str__(self):
-        return "{}>{}".format(self.parent, self.title)
-
-    class Meta(PolymorphicMPTTModel.Meta):
-        verbose_name = _("Tree node")
-        verbose_name_plural = _("Tree nodes")
-
-
-# Create 2 derived models for the tree nodes:
-
-class CategoryNode(BaseTreeNode):
-    opening_title = models.CharField(_("Description"), max_length=200)
-
-    class Meta:
-        verbose_name = _("Category node")
-        verbose_name_plural = _("Category nodes")
-
-
-class TextNode(BaseTreeNode):
-    extra_text = models.TextField()
-
-    # Extra settings:
-    can_have_children = False
-
-    class Meta:
-        verbose_name = _("Text node")
-        verbose_name_plural = _("Text nodes")

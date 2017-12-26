@@ -1,16 +1,36 @@
 from django.contrib import admin
-from .models import Process, Salestage, Stageaction, Celestial
+from django.utils.translation import ugettext_lazy as _
+from polymorphic_tree.admin import PolymorphicMPTTParentModelAdmin, PolymorphicMPTTChildModelAdmin
+from . import models
 
-# Register your models here.
+# The common admin functionality for all derived models:
 
-admin.site.register(Process)
-admin.site.register(Salestage)
-admin.site.register(Stageaction)
-admin.site.register(Celestial)
+class BaseChildAdmin(PolymorphicMPTTChildModelAdmin):
+    GENERAL_FIELDSET = (None, {
+        'fields': ('parent', 'title'),
+    })
 
-# from django.contrib import admin
-# from lead.models import *
-# from django.apps import apps
+    base_model = models.BaseTreeNode
+    base_fieldsets = (
+        GENERAL_FIELDSET,
+    )
 
-# for model in apps.get_app_config('lead').models.values():
-#     admin.site.register(model)
+
+# Optionally some custom admin code
+
+class TextNodeAdmin(BaseChildAdmin):
+    pass
+
+
+# Create the parent admin that combines it all:
+
+class TreeNodeParentAdmin(PolymorphicMPTTParentModelAdmin):
+    base_model = models.BaseTreeNode
+    child_models = (
+        (models.CategoryNode, BaseChildAdmin),
+        (models.TextNode, TextNodeAdmin),  # custom admin allows custom edit/delete view.
+    )
+
+    list_display = ('title', 'actions_column',)
+
+admin.site.register(models.BaseTreeNode, TreeNodeParentAdmin)

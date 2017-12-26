@@ -1,7 +1,21 @@
+from .models import TextNode, CategoryNode, BaseTreeNode
 from rest_framework import serializers
-from .models import Process
+from rest_framework_recursive.fields import RecursiveField
 
-class ProcessSerializer(serializers.ModelSerializer):
-	class Meta:
-		model = Process
-		fields = ('id', 'client_name', 'contact_person', 'medium_action', 'medium_type', 'medium_status', 'stage', 'remainder_date', 'created')
+
+class TextNodeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TextNode
+        fields = ('extra_text')
+
+class CategoryNodeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CategoryNode
+        fields = ('opening_title',)
+
+class BaseTreeNodeSerializer(serializers.ModelSerializer):
+    subcategories = serializers.ListSerializer(source="children",child=RecursiveField())
+    # opening_title = CategoryNodeSerializer(many=True)
+    class Meta:
+        model = BaseTreeNode
+        fields = ('id', 'title', 'subcategories')
