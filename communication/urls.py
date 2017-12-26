@@ -1,6 +1,6 @@
 from . import views
 from django.conf.urls import url
-from .views import BaseTreeNodeView, BaseTreeNodeDetailsView
+from .views import BaseTreeNodeView
 
 app_name = 'communication'
 urlpatterns = [
