@@ -34,7 +34,7 @@ class CategoryNode(BaseTreeNode):
 class DateNode(BaseTreeNode):
     date = models.DateTimeField(null=True)
 
-    # Extra settings:
+    # no additional inheritance
     can_have_children = False
 
     class Meta:
