@@ -4,7 +4,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
 from django.utils.translation import gettext as _
 from polymorphic_tree.models import PolymorphicMPTTModel, PolymorphicTreeForeignKey
-import uuid
 
 ######################################################## !!! Django Polymorphic !!! ########################################################
 
@@ -25,8 +24,8 @@ class BaseTreeNode(PolymorphicMPTTModel):
 # 2 derived models for the tree nodes:
 
 class DescriptionNode(BaseTreeNode):
-    basetreenode = models.OneToOneField(BaseTreeNode, related_name="base_tree")
-    description = models.CharField(_("Description"), max_length=200)
+    basetreenode = models.OneToOneField(BaseTreeNode, related_name="base_tree") # 
+    description = models.CharField(_("Description"), max_length=200) # include nullable option
 
     class Meta:
         verbose_name = _("Description node")

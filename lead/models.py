@@ -3,6 +3,10 @@ from django.db import models
 from rest_framework.compat import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
+from django.db.models.signals import post_save
+from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
+from django.dispatch import receiver
 
 SERVICE_CHOICES = (
     ("Hardware", "Hardware"),
@@ -10,6 +14,7 @@ SERVICE_CHOICES = (
 )
 
 class Process(models.Model):
+    owner = models.ForeignKey('auth.User', related_name='bucketlists', on_delete=models.CASCADE) 
     service = models.CharField(max_length=15, choices=SERVICE_CHOICES)
     income = models.IntegerField(default=0)
     discount = models.IntegerField(default=0)
@@ -43,4 +48,9 @@ class Process(models.Model):
 
     class Meta:
         ordering = ('-created',)
+
+@receiver(post_save, sender=User)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)
 

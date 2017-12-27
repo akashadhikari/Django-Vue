@@ -2,21 +2,35 @@ from rest_framework import viewsets, generics
 from .models import Process
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
-from .serializers import ProcessSerializer
+from .serializers import ProcessSerializer, UserSerializer
+from rest_framework import permissions
+from .permissions import IsOwner
+from django.contrib.auth.models import User
 
 class ProcessListViewSet(generics.ListCreateAPIView):
     queryset = Process.objects.all()
     serializer_class = ProcessSerializer
+    permission_classes = (permissions.IsAuthenticated,)
     filter_backends = (filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend)
     search_fields = ('service', 'stage')
     filter_fields = ('service', 'stage')
 
     def perform_create(self, serializer):
-        """Save the post data when creating a new instance."""
-        serializer.save()
+            serializer.save(owner=self.request.user) # Adding owner=self.request.user
 
 class ProcessDetailsViewSet(generics.RetrieveUpdateDestroyAPIView):
-    """This class handles the http GET, PUT and DELETE requests."""
-
     queryset = Process.objects.all()
     serializer_class = ProcessSerializer
+    permission_classes = (
+        permissions.IsAuthenticated, IsOwner)
+
+class UserView(generics.ListAPIView):
+    """View to list the user queryset."""
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
+class UserDetailsView(generics.RetrieveAPIView):
+    """View to retrieve a user instance."""
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
