@@ -21,5 +21,12 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/communication/', include('communication.urls')),
     url(r'^api/lead/', include('lead.urls')),
+    url(r'^api/users/', include('users.urls')),
     #url(r'^$', TemplateView.as_view(template_name='project/spa.html'), name='home'),
+]
+
+# DRF Auth
+urlpatterns += [
+    url(r'^api-auth/', include('rest_framework.urls',
+                               namespace='rest_framework')),
 ]
