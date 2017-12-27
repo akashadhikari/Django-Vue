@@ -14,7 +14,7 @@ SERVICE_CHOICES = (
 )
 
 class Process(models.Model):
-    owner = models.ForeignKey('auth.User', related_name='bucketlists', on_delete=models.CASCADE) 
+    owner = models.ForeignKey('auth.User', related_name='process_list', on_delete=models.CASCADE) 
     service = models.CharField(max_length=15, choices=SERVICE_CHOICES)
     income = models.IntegerField(default=0)
     discount = models.IntegerField(default=0)

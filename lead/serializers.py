@@ -14,6 +14,7 @@ class ProcessSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     """A user serializer to aid in authentication and authorization."""
 
+    # Always use the related_name defined on models
     process_list = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Process.objects.all())
 
