@@ -11,11 +11,11 @@ class DateNodeSerializer(serializers.ModelSerializer):
 class DescriptionNodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = DescriptionNode
-        fields = ('opening_title',)
+        fields = ('description',)
 
 class BaseTreeNodeSerializer(serializers.ModelSerializer):
     subcategories = serializers.ListSerializer(source="children",child=RecursiveField())
-    # opening_title = DescriptionNodeSerializer(many=True)    
+    # description = DescriptionNodeSerializer(many=True)    
     class Meta:
         model = BaseTreeNode
         fields = ('id', 'title', 'subcategories')
