@@ -1,5 +1,5 @@
-from .models import BaseTreeNode, CategoryNode
-from .serializers import BaseTreeNodeSerializer, CategoryNodeSerializer
+from .models import BaseTreeNode, DescriptionNode
+from .serializers import BaseTreeNodeSerializer, DescriptionNodeSerializer
 from rest_framework import viewsets, generics
 from rest_framework import filters
 
@@ -16,13 +16,13 @@ class BaseTreeNodeView(generics.ListCreateAPIView):
 #     queryset = queryset.toplevel()
 #     serializer_class = BaseTreeNode
 
-class CategoryNodeView(generics.ListCreateAPIView):
-    queryset = CategoryNode.objects.all()
-    serializer_class = CategoryNodeSerializer
+class DescriptionNodeView(generics.ListCreateAPIView):
+    queryset = DescriptionNode.objects.all()
+    serializer_class = DescriptionNodeSerializer
     filter_backends = (filters.SearchFilter, filters.OrderingFilter)
     search_fields = ('id', 'opening_title')
 
-# class CategoryNodeDetailsView(generics.RetrieveUpdateDestroyAPIView):
+# class DescriptionNodeDetailsView(generics.RetrieveUpdateDestroyAPIView):
 
-#     queryset = CategoryNode.objects.all()
-#     serializer_class = CategoryNode
+#     queryset = DescriptionNode.objects.all()
+#     serializer_class = DescriptionNode

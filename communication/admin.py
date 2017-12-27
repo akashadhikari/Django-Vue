@@ -27,7 +27,7 @@ class DateNodeAdmin(BaseChildAdmin):
 class TreeNodeParentAdmin(PolymorphicMPTTParentModelAdmin):
     base_model = models.BaseTreeNode
     child_models = (
-        (models.CategoryNode, BaseChildAdmin),
+        (models.DescriptionNode, BaseChildAdmin),
         (models.DateNode, DateNodeAdmin),  # custom admin allows custom edit/delete view.
     )
 

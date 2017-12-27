@@ -1,4 +1,4 @@
-from .models import DateNode, CategoryNode, BaseTreeNode
+from .models import DateNode, DescriptionNode, BaseTreeNode
 from rest_framework import serializers
 from rest_framework_recursive.fields import RecursiveField
 
@@ -8,14 +8,14 @@ class DateNodeSerializer(serializers.ModelSerializer):
         model = DateNode
         fields = ('date')
 
-class CategoryNodeSerializer(serializers.ModelSerializer):
+class DescriptionNodeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CategoryNode
+        model = DescriptionNode
         fields = ('opening_title',)
 
 class BaseTreeNodeSerializer(serializers.ModelSerializer):
     subcategories = serializers.ListSerializer(source="children",child=RecursiveField())
-    # opening_title = CategoryNodeSerializer(many=True)    
+    # opening_title = DescriptionNodeSerializer(many=True)    
     class Meta:
         model = BaseTreeNode
         fields = ('id', 'title', 'subcategories')
