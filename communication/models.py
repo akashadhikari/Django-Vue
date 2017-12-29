@@ -56,9 +56,16 @@ SUB_STAGES = (
     ("F", "F")
 )
 
+class SalesSub(models.Model):
+    sales_substage = models.CharField(max_length=100, blank=False)
+
+    def __str__(self):
+        return "{}".format(self.sales_substage)
+
 class SalesStage(models.Model):
     sales_stage = models.CharField(max_length=100, choices=SALES_STAGES)
-    substage = models.CharField(max_length=100, choices=SUB_STAGES)
+    substage = models.CharField(max_length=100, choices=SUB_STAGES, primary_key=True)
+    #sales_sub = models.ForeignKey(SalesSub, related_name="sales_sub", on_delete=models.DO_NOTHING)
     client = models.ForeignKey(Clientlist, related_name='client_sales', on_delete=models.DO_NOTHING)
 
     def __str__(self):

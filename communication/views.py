@@ -12,7 +12,6 @@ class ClientCreateView(generics.ListCreateAPIView):
     serializer_class = ClientlistSerializer
     permission_classes = (permissions.IsAuthenticated, IsOwner)
     filter_backends = (filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend)
-    search_fields = ('client_name', 'owner')
     filter_fields = ('client_name', 'owner')
 
     def perform_create(self, serializer):
@@ -27,7 +26,6 @@ class UserView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-
 class UserDetailsView(generics.RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -35,6 +33,7 @@ class UserDetailsView(generics.RetrieveAPIView):
 class DetaillistView(generics.ListCreateAPIView):
 	queryset = Detaillist.objects.all()
 	serializer_class = DetaillistSerializer
+	filter_backends = (filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend)
 	filter_fields = ('client', 'medium')
 
 class DetailEditView(generics.RetrieveUpdateDestroyAPIView):
@@ -44,6 +43,8 @@ class DetailEditView(generics.RetrieveUpdateDestroyAPIView):
 class SalesStageListView(generics.ListCreateAPIView):
 	queryset = SalesStage.objects.all()
 	serializer_class = SalesStageSerializer
+	filter_backends = (filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend)
+	filter_fields = ('sales_stage', 'substage')
 
 class SalesStageEditView(generics.RetrieveUpdateDestroyAPIView):
 	queryset = SalesStage.objects.all()
