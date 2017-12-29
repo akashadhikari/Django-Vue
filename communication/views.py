@@ -1,28 +1,50 @@
-from .models import BaseTreeNode, DescriptionNode
-from .serializers import BaseTreeNodeSerializer, DescriptionNodeSerializer
-from rest_framework import viewsets, generics
+from django.contrib.auth.models import User
+from .models import Clientlist, Detaillist, SalesStage
+from .permissions import IsOwner
+from rest_framework import generics
+from rest_framework import permissions
 from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
+from .serializers import ClientlistSerializer, UserSerializer, DetaillistSerializer, SalesStageSerializer
 
-class BaseTreeNodeView(generics.ListCreateAPIView):
-    queryset = BaseTreeNode.objects.all()
-    queryset = queryset.toplevel()
-    serializer_class = BaseTreeNodeSerializer
-    filter_backends = (filters.SearchFilter, filters.OrderingFilter)
-    search_fields = ('id', 'title')
+class ClientCreateView(generics.ListCreateAPIView):
+    queryset = Clientlist.objects.all()
+    serializer_class = ClientlistSerializer
+    permission_classes = (permissions.IsAuthenticated, IsOwner)
+    filter_backends = (filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend)
+    search_fields = ('client_name', 'owner')
+    filter_fields = ('client_name', 'owner')
 
-# class BaseTreeNodeDetailsView(generics.RetrieveUpdateDestroyAPIView):
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
-#     queryset = BaseTreeNode.objects.all()
-#     queryset = queryset.toplevel()
-#     serializer_class = BaseTreeNode
+class ClientDetailsView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Clientlist.objects.all()
+    serializer_class = ClientlistSerializer
+    permission_classes = (permissions.IsAuthenticated, IsOwner)
 
-class DescriptionNodeView(generics.ListCreateAPIView):
-    queryset = DescriptionNode.objects.all()
-    serializer_class = DescriptionNodeSerializer
-    filter_backends = (filters.SearchFilter, filters.OrderingFilter)
-    search_fields = ('id', 'opening_title')
+class UserView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
-# class DescriptionNodeDetailsView(generics.RetrieveUpdateDestroyAPIView):
 
-#     queryset = DescriptionNode.objects.all()
-#     serializer_class = DescriptionNode
+class UserDetailsView(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+class DetaillistView(generics.ListCreateAPIView):
+	queryset = Detaillist.objects.all()
+	serializer_class = DetaillistSerializer
+	filter_fields = ('client', 'medium')
+
+class DetailEditView(generics.RetrieveUpdateDestroyAPIView):
+	queryset = Detaillist.objects.all()
+	serializer_class = DetaillistSerializer
+
+class SalesStageListView(generics.ListCreateAPIView):
+	queryset = SalesStage.objects.all()
+	serializer_class = SalesStageSerializer
+
+class SalesStageEditView(generics.RetrieveUpdateDestroyAPIView):
+	queryset = SalesStage.objects.all()
+	serializer_class = SalesStageSerializer

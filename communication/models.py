@@ -1,43 +1,78 @@
-from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from django.db.models.signals import post_save
 from django.contrib.auth.models import User
+from django.dispatch import receiver
+from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
-from polymorphic_tree.models import PolymorphicMPTTModel, PolymorphicTreeForeignKey
+from rest_framework.authtoken.models import Token
 
-######################################################## !!! Django Polymorphic !!! ########################################################
-
-# A base model for the tree:
-
-class BaseTreeNode(PolymorphicMPTTModel):
-    parent = PolymorphicTreeForeignKey('self', blank=True, null=True, related_name='children', verbose_name=_('parent'))
-    title = models.CharField(_("Title"), max_length=200)
+class Clientlist(models.Model):
+    client_name = models.CharField(max_length=255, blank=False)
+    owner = models.ForeignKey('auth.User', related_name='clientlist', on_delete=models.CASCADE) 
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return "{}>{}".format(self.parent, self.title)
+        return "{}".format(self.client_name)
 
-    class Meta(PolymorphicMPTTModel.Meta):
-        verbose_name = _("Tree node")
-        verbose_name_plural = _("Tree nodes")
+MEDIUM_CHOICES = (
+    ("Inbound Call", "Inbound Call"),
+    ("Outbound Call", "Outbound Call"),
+    ("Inbound Email", "Inbound Email"),
+    ("Outbound Email", "Outbound Email"),
+    ("Inbound Call", "Inbound Call"),
+    ("Outbound Call", "Outbound Call"),
+)
 
+YES_NO = (
+    ("Successful", "Successful"),
+    ("Unsuccessful", "Unsuccessful")
+)
 
-# 2 derived models for the tree nodes:
+class Detaillist(models.Model):
+    client = models.ForeignKey(Clientlist, related_name='client', on_delete=models.DO_NOTHING)
+    medium = models.CharField(max_length=255, choices=MEDIUM_CHOICES)
+    medium_status = models.CharField(max_length=10, choices=YES_NO)
+    contact_person = models.CharField(max_length=255, blank=False)
+    remarks = models.TextField(max_length=999, blank=False)
 
-class DescriptionNode(BaseTreeNode):
-    basetreenode = models.OneToOneField(BaseTreeNode, related_name="base_tree") # 
-    description = models.CharField(_("Description"), max_length=200) # include nullable option
+    def __str__(self):
+        return "{}-{}".format(self.client, self.medium)
+
+# SalesStage - grab client name, define stage (susp, pros, approach choices)
+
+SALES_STAGES = (
+    ("Suspecting", "Suspecting"),
+    ("Prospecting", "Prospecting"),
+    ("Approaching", "Approaching")
+)
+
+SUB_STAGES = (
+    ("A", "A"),
+    ("B", "B"),
+    ("C", "C"),
+    ("D", "D"),
+    ("E", "E"),
+    ("F", "F")
+)
+
+class SalesStage(models.Model):
+    sales_stage = models.CharField(max_length=100, choices=SALES_STAGES)
+    substage = models.CharField(max_length=100, choices=SUB_STAGES)
+    client = models.ForeignKey(Clientlist, related_name='client_sales', on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        return "{}-{}".format(self.client, self.sales_stage)
+
+    def clean(self):
+        # Don't allow Hardware services to have stages more than 5.
+        if self.sales_stage == 'Suspecting' and self.substage == 'F':
+            raise ValidationError({'sales_stage': _('Suspecting has no substage F')})
 
     class Meta:
-        verbose_name = _("Description node")
-        verbose_name_plural = _("Description nodes")
+        unique_together = (("client", "sales_stage"),)
 
-
-class DateNode(BaseTreeNode):
-    date = models.DateTimeField(null=True)
-
-    # no additional inheritance
-    can_have_children = False
-
-    class Meta:
-        verbose_name = _("Date node")
-        verbose_name_plural = _("Date nodes")
+@receiver(post_save, sender=User)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)

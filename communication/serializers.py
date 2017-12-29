@@ -1,24 +1,57 @@
-from .models import DateNode, DescriptionNode, BaseTreeNode
-from rest_framework import serializers, fields
-from rest_framework_recursive.fields import RecursiveField
+from django.contrib.auth.models import User
+from rest_framework import serializers
+from .models import Clientlist, Detaillist, SalesStage
 
+class UserSerializer(serializers.ModelSerializer):
 
-class DateNodeSerializer(serializers.ModelSerializer):
+    # Always use the related_name defined on models
+    clientlist = serializers.PrimaryKeyRelatedField(many=True, queryset=Clientlist.objects.all())
+
     class Meta:
-        model = DateNode
-        fields = ('date')
+        """Map this serializer to the default django user model."""
+        model = User
+        fields = ('id', 'username', 'clientlist')
 
-class DescriptionNodeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DescriptionNode
-        fields = ('description',)
+class DetaillistSerializer(serializers.ModelSerializer):
 
-class BaseTreeNodeSerializer(serializers.ModelSerializer):
-    description = serializers.SerializerMethodField()
-    subcategories = serializers.ListSerializer(source="children",child=RecursiveField())
+    def get_client(self, obj):
+        return obj.client.client_name
+
+    def get_fields(self):
+        fields = super().get_fields()
+
+        if self.context['request'].method == 'GET':
+            fields['client'] = serializers.SerializerMethodField()
+
+        return fields
+
     class Meta:
-        model = BaseTreeNode
-        fields = ('id', 'title', 'description', 'subcategories')
-        
-    def get_description(self, obj):
-        return obj.base_tree.description #base_tree is related name of basetreenode field
+        model = Detaillist
+        fields = '__all__'
+
+class SalesStageSerializer(serializers.ModelSerializer):
+
+    def get_client(self, obj):
+        return obj.client.client_name
+
+    def get_fields(self):
+        fields = super().get_fields()
+
+        if self.context['request'].method == 'GET':
+            fields['client'] = serializers.SerializerMethodField()
+
+        return fields
+
+    class Meta:
+        model = SalesStage
+        fields = '__all__'
+
+class ClientlistSerializer(serializers.ModelSerializer):
+
+    owner = serializers.ReadOnlyField(source='owner.username')
+
+    class Meta:
+        """Meta class to map serializer's fields with the model fields."""
+        model = Clientlist
+        fields = ('id', 'client_name', 'owner', 'date_created', 'date_modified')
+        read_only_fields = ('date_created', 'date_modified')
