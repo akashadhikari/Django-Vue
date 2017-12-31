@@ -8,7 +8,8 @@ from rest_framework.authtoken.models import Token
 
 class Clientlist(models.Model):
     client_name = models.CharField(max_length=255, blank=False)
-    owner = models.ForeignKey('auth.User', related_name='clientlist', on_delete=models.CASCADE) 
+    # user = models.ForeignKey(User, related_name='user', on_delete=models.CASCADE
+    user = models.ForeignKey(User, related_name='users', on_delete=models.CASCADE)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
 
@@ -47,7 +48,7 @@ SALES_STAGES = (
     ("Approaching", "Approaching")
 )
 
-SUB_STAGES = (
+SALES_SUB_STAGES = ( # These fall under Sales Stages
     ("A", "A"),
     ("B", "B"),
     ("C", "C"),
@@ -56,15 +57,16 @@ SUB_STAGES = (
     ("F", "F")
 )
 
-class SalesSub(models.Model):
-    sales_substage = models.CharField(max_length=100, blank=False)
+# class SalesSub(models.Model):
+#     sales_substage = models.CharField(max_length=100, blank=False)
+#     substage = models.ForeignKey(SalesStage, related_name='sub_stage', on_delete=models.DO_NOTHING)
 
-    def __str__(self):
-        return "{}".format(self.sales_substage)
+#     def __str__(self):
+#         return "{}".format(self.sales_substage)
 
 class SalesStage(models.Model):
     sales_stage = models.CharField(max_length=100, choices=SALES_STAGES)
-    substage = models.CharField(max_length=100, choices=SUB_STAGES, primary_key=True)
+    substage = models.CharField(max_length=100, choices=SALES_SUB_STAGES, primary_key=True)
     #sales_sub = models.ForeignKey(SalesSub, related_name="sales_sub", on_delete=models.DO_NOTHING)
     client = models.ForeignKey(Clientlist, related_name='client_sales', on_delete=models.DO_NOTHING)
 

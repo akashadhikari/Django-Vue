@@ -14,7 +14,7 @@ SERVICE_CHOICES = (
 )
 
 class Process(models.Model):
-    owner = models.ForeignKey('auth.User', related_name='process_list', on_delete=models.CASCADE) 
+    user = models.ForeignKey(User, related_name='user', on_delete=models.CASCADE) 
     service = models.CharField(max_length=15, choices=SERVICE_CHOICES)
     income = models.IntegerField(default=0)
     discount = models.IntegerField(default=0)
@@ -53,4 +53,5 @@ class Process(models.Model):
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.create(user=instance)
+
 

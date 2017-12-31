@@ -1,4 +1,4 @@
-#!/home/akash/Desktop/djangovuecrm/crm/.venv/bin/python3
+#!/home/akash/Desktop/reff/crm/.venv/bin/python3
 from django.core import management
 
 if __name__ == "__main__":

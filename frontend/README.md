@@ -1,6 +1,6 @@
 # frontend
 
-> A vue js frontend with django backend crm
+> A Vue.js project
 
 ## Build Setup
 

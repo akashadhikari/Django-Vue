@@ -1,5 +1,5 @@
 'use strict'
-// Template version: 1.2.7
+// Template version: 1.2.4
 // see http://vuejs-templates.github.io/webpack for documentation.
 
 const path = require('path')
@@ -8,7 +8,7 @@ module.exports = {
   dev: {
 
     // Paths
-    assetsSubDirectory: 'static',
+    assetsSubDirectory: 'frontend',
     assetsPublicPath: '/',
     proxyTable: {},
 
@@ -50,11 +50,11 @@ module.exports = {
 
   build: {
     // Template for index.html
-    index: path.resolve(__dirname, '../dist/index.html'),
+    index: path.resolve(__dirname, '../templates/frontend/index.html'),
 
     // Paths
-    assetsRoot: path.resolve(__dirname, '../dist'),
-    assetsSubDirectory: 'static',
+    assetsRoot: path.resolve(__dirname, '../static'),
+    assetsSubDirectory: 'frontend',
     assetsPublicPath: '/',
 
     /**
