@@ -8,7 +8,6 @@ from rest_framework.authtoken.models import Token
 
 class Clientlist(models.Model):
     client_name = models.CharField(max_length=255, blank=False)
-    # user = models.ForeignKey(User, related_name='user', on_delete=models.CASCADE
     user = models.ForeignKey(User, related_name='users', on_delete=models.CASCADE)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
@@ -51,16 +50,10 @@ SALES_STAGES = (
 class SalesStage(models.Model):
     substage = models.CharField(max_length=100, primary_key=True)
     sales_stage = models.CharField(max_length=100, choices=SALES_STAGES)
-    #sales_sub = models.ForeignKey(SalesSub, related_name="sales_sub", on_delete=models.DO_NOTHING)
     client = models.ForeignKey(Clientlist, related_name='client_sales', on_delete=models.DO_NOTHING)
 
     def __str__(self):
-        return "{}-{}".format(self.client, self.sales_stage)
-
-    def clean(self):
-        # Don't allow Hardware services to have stages more than 5.
-        if self.sales_stage == 'Suspecting' and self.substage == 'F':
-            raise ValidationError({'sales_stage': _('Suspecting has no substage F')})
+        return "{}-{}-{}".format(self.client, self.sales_stage, self.substage)
 
     class Meta:
         unique_together = (("client", "sales_stage"),)

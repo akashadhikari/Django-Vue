@@ -24,17 +24,6 @@ class ProcessDetailsViewSet(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ProcessSerializer
     permission_classes = (IsManager,)
 
-# class UserView(generics.ListAPIView):
-#     """View to list the user queryset."""
-#     queryset = User.objects.all()
-#     serializer_class = UserSerializer
-
-
-# class UserDetailsView(generics.RetrieveAPIView):
-#     """View to retrieve a user instance."""
-#     queryset = User.objects.all()
-#     serializer_class = UserSerializer
-
 ################################PANDAS#######################
 
 from rest_pandas import PandasView
