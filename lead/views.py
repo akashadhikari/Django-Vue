@@ -34,3 +34,13 @@ class ProcessDetailsViewSet(generics.RetrieveUpdateDestroyAPIView):
 #     """View to retrieve a user instance."""
 #     queryset = User.objects.all()
 #     serializer_class = UserSerializer
+
+################################PANDAS#######################
+
+from rest_pandas import PandasView
+from .serializers import ProcessSerializer
+
+# Short version (leverages default DRP settings):
+class ProcessView(PandasView):
+    queryset = Process.objects.all()
+    serializer_class = ProcessSerializer

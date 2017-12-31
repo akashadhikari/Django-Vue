@@ -1,6 +1,6 @@
 from django.conf.urls import url, include
 from rest_framework.authtoken.views import obtain_auth_token
-from .views import ClientlistViewSet, ClientlistDetailsViewSet, DetaillistView, DetailEditView, SalesStageListView, SalesStageEditView
+from .views import ClientlistViewSet, ClientlistDetailsViewSet, DetaillistView, DetailEditView, SalesStageListView, SalesStageEditView, SalesSubListView, SalesSubEditView
 
 urlpatterns = [
 
@@ -12,4 +12,7 @@ urlpatterns = [
 
     url(r'^saleslist/$', SalesStageListView.as_view(), name="sales_list"),
     url(r'^saleslist/(?P<pk>[0-9]+)/$', SalesStageEditView.as_view(), name="sales_edit"),
+
+    url(r'^salessublist/$', SalesSubListView.as_view(), name="sales_sublist"),
+    url(r'^salessublist/(?P<pk>[0-9]+)/$', SalesSubEditView.as_view(), name="sales_subedit"),
 ]
