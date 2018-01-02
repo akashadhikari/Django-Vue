@@ -24,6 +24,18 @@ class Process(models.Model):
     stage = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(10)])
     created = models.DateTimeField(auto_now_add=True)
 
+    ### For Pi-chart data
+
+    def hardware_count(self):
+        x = Process.objects.filter(service='Hardware').count()
+        return x
+
+    def software_count(self):
+        y = Process.objects.filter(service='Software').count()
+        return y
+
+    ###
+
     def grand_total(self):
         return (self.income - self.discount + (self.tax_percent*self.income)/100)
 

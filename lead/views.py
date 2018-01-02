@@ -2,7 +2,7 @@ from rest_framework import viewsets, generics
 from .models import Process
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
-from .serializers import ProcessSerializer
+from .serializers import ProcessSerializer, StatsSerializer
 from users.permissions import IsManager
 from rest_framework import permissions
 # from .permissions import IsOwner
@@ -24,12 +24,16 @@ class ProcessDetailsViewSet(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ProcessSerializer
     permission_classes = (IsManager,)
 
+class StatsViewSet(generics.ListCreateAPIView):
+    queryset = Process.objects.all() # Process.objects.filter(service='Hardware').count()
+    serializer_class = StatsSerializer
+
 ################################PANDAS#######################
 
 from rest_pandas import PandasView
 from .serializers import ProcessSerializer
 
 # Short version (leverages default DRP settings):
-class ProcessView(PandasView):
+class ProcessPandasView(PandasView):
     queryset = Process.objects.all()
     serializer_class = ProcessSerializer
