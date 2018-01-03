@@ -1,8 +1,8 @@
 from rest_framework import viewsets, generics
-from .models import Clientlist, Detaillist, SalesStage, SalesSub
+from .models import Clientlist, SalesStage, SalesSub
 # from rest_framework import filters
 # from django_filters.rest_framework import DjangoFilterBackend
-from .serializers import ClientlistSerializer, DetaillistSerializer, SalesStageSerializer, SalesSubSerializer
+from .serializers import ClientlistSerializer, SalesStageSerializer, SalesSubSerializer
 from users.permissions import IsManager
 from rest_framework import permissions
 # from .permissions import IsOwner
@@ -23,13 +23,13 @@ class ClientlistDetailsViewSet(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ClientlistSerializer
     permission_classes = (IsManager,)
 
-class DetaillistView(generics.ListCreateAPIView):
-    queryset = Detaillist.objects.all()
-    serializer_class = DetaillistSerializer
+# class DetaillistView(generics.ListCreateAPIView):
+#     queryset = Detaillist.objects.all()
+#     serializer_class = DetaillistSerializer
 
-class DetailEditView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Detaillist.objects.all()
-    serializer_class = DetaillistSerializer
+# class DetailEditView(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = Detaillist.objects.all()
+#     serializer_class = DetaillistSerializer
 
 class SalesStageListView(generics.ListCreateAPIView):
     queryset = SalesStage.objects.all()

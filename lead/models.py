@@ -27,12 +27,12 @@ class Process(models.Model):
     ### For Pi-chart data
 
     def hardware_count(self):
-        x = Process.objects.filter(service='Hardware').count()
-        return x
+        count_h = Process.objects.filter(service='Hardware').count()
+        return count_h
 
     def software_count(self):
-        y = Process.objects.filter(service='Software').count()
-        return y
+        count_s = Process.objects.filter(service='Software').count()
+        return count_s
 
     ###
 

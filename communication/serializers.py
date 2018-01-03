@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Clientlist, Detaillist, SalesStage, SalesSub
+from .models import Clientlist, SalesStage, SalesSub
 
 
 class ClientlistSerializer(serializers.ModelSerializer):
@@ -19,22 +19,6 @@ class ClientlistSerializer(serializers.ModelSerializer):
         model = Clientlist
         fields = '__all__'
 
-class DetaillistSerializer(serializers.ModelSerializer):
-
-    def get_client(self, obj):
-        return obj.client.client_name
-
-    def get_fields(self):
-        fields = super().get_fields()
-
-        if self.context['request'].method == 'GET':
-            fields['client'] = serializers.SerializerMethodField()
-
-        return fields
-
-    class Meta:
-        model = Detaillist
-        fields = '__all__'
 
 class SalesStageSerializer(serializers.ModelSerializer):
 
@@ -57,4 +41,4 @@ class SalesSubSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SalesSub
-        fields = '__all__'
+        fields = ('substage', 'sales_substage')
