@@ -4,6 +4,13 @@ from .models import Clientlist, SalesStage, SalesSub
 
 
 class ClientlistSerializer(serializers.ModelSerializer):
+
+    current_user = serializers.SerializerMethodField('_user')
+
+    def _user(self, obj):
+        user = self.context['request'].user.id
+        return user
+        
     def get_users(self, instance):
         return instance.user.username
 
@@ -22,6 +29,12 @@ class ClientlistSerializer(serializers.ModelSerializer):
 
 class SalesStageSerializer(serializers.ModelSerializer):
 
+    current_user = serializers.SerializerMethodField('_user')
+
+    def _user(self, obj):
+        user = self.context['request'].user.id
+        return user
+
     def get_client(self, obj):
         return obj.client.client_name
 
@@ -39,6 +52,12 @@ class SalesStageSerializer(serializers.ModelSerializer):
 
 class SalesSubSerializer(serializers.ModelSerializer):
 
+    current_user = serializers.SerializerMethodField('_user')
+
+    def _user(self, obj):
+        user = self.context['request'].user.id
+        return user
+
     class Meta:
         model = SalesSub
-        fields = ('substage', 'sales_substage')
+        fields = '__all__'

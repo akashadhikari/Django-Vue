@@ -5,8 +5,14 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .serializers import ProcessSerializer, StatsSerializer
 from users.permissions import IsManager
 from rest_framework import permissions
-# from .permissions import IsOwner
+from .permissions import IsOwnerOrReadOnly
 from django.contrib.auth.models import User
+from rest_framework.permissions import (
+    AllowAny,
+    IsAuthenticated,
+    IsAdminUser,
+    IsAuthenticatedOrReadOnly,
+    )
 
 class ProcessListViewSet(generics.ListCreateAPIView):
     queryset = Process.objects.all()
@@ -22,7 +28,7 @@ class ProcessListViewSet(generics.ListCreateAPIView):
 class ProcessDetailsViewSet(generics.RetrieveUpdateDestroyAPIView):
     queryset = Process.objects.all()
     serializer_class = ProcessSerializer
-    permission_classes = (IsManager,)
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
 class StatsViewSet(generics.ListCreateAPIView):
     queryset = Process.objects.all() # Process.objects.filter(service='Hardware').count()

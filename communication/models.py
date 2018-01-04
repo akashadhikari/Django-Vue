@@ -47,11 +47,12 @@ class SalesStage(models.Model):
     client = models.ForeignKey(Clientlist, related_name='client_sales', on_delete=models.DO_NOTHING)
 
     def __str__(self):
-        return "{}-{}-{}".format(self.client, self.sales_stage, self.substage)
+        return "{}-{}".format(self.sales_stage, self.substage)
 ###
 class SalesSub(models.Model):
     sales_substage = models.CharField(max_length=100, blank=False)
     substage = models.ForeignKey(SalesStage, related_name='sub_stage', on_delete=models.DO_NOTHING)
+    client = models.ForeignKey(Clientlist, related_name='client_salessub', on_delete=models.DO_NOTHING)
 
     def __str__(self):
         return "{}".format(self.sales_substage)
