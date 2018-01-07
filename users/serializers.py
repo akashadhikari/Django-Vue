@@ -5,18 +5,18 @@ from .models import RelationUserType
 
 
 class UserSerializer(serializers.ModelSerializer):
-    type = serializers.SerializerMethodField()
+    usertype = serializers.SerializerMethodField()
 
     def get_type(self, instance):
         try:
-            return RelationUserType.objects.get(user=instance).type
+            return RelationUserType.objects.get(user=instance).usertype
         except RelationUserType.DoesNotExist:
             return None
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'password', 'first_name', 'last_name', 'type')
-        read_only_fields = ('type',)
+        fields = ('id', 'username', 'password', 'first_name', 'last_name', 'usertype')
+        read_only_fields = ('usertype',)
         extra_kwargs = {
             'password': {
                 'write_only': True,

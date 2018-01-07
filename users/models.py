@@ -20,7 +20,7 @@ class RelationUserType(models.Model):
     TYPE_CHOICES = (('manager', 'manager'), ('employer', 'employer'), ('jobseeker', 'jobseeker'))
 
     user = models.OneToOneField(User, related_name='user_type')
-    type = models.CharField(max_length=10, choices=TYPE_CHOICES)
+    usertype = models.CharField(max_length=10, choices=TYPE_CHOICES)
 
     def __str__(self):
         return self.user.username

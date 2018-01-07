@@ -1,12 +1,13 @@
 from django.contrib.auth.models import User
 from django.db import models
-from rest_framework.compat import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 from django.db.models.signals import post_save
 from django.contrib.auth.models import User
-from rest_framework.authtoken.models import Token
 from django.dispatch import receiver
+from rest_framework.authtoken.models import Token
+from rest_framework.compat import MinValueValidator, MaxValueValidator
+
 
 SERVICE_CHOICES = (
     ("Hardware", "Hardware"),
@@ -18,13 +19,16 @@ class Process(models.Model):
     service = models.CharField(max_length=15, choices=SERVICE_CHOICES)
     income = models.IntegerField(default=0)
     discount = models.IntegerField(default=0)
-    tax_percent = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(25)])
-    unit = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
+    tax_percent = models.PositiveIntegerField(default=1, 
+        validators=[MinValueValidator(1), MaxValueValidator(25)])
+    unit = models.PositiveIntegerField(default=1, 
+        validators=[MinValueValidator(1)])
     bulk = models.BooleanField(default=False)
-    stage = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(10)])
+    stage = models.PositiveIntegerField(default=1, 
+        validators=[MinValueValidator(1), MaxValueValidator(10)])
     created = models.DateTimeField(auto_now_add=True)
 
-    ### For Pi-chart data
+    ### Some custom functions
 
     def hardware_count(self):
         count_h = Process.objects.filter(service='Hardware').count()
@@ -33,8 +37,6 @@ class Process(models.Model):
     def software_count(self):
         count_s = Process.objects.filter(service='Software').count()
         return count_s
-
-    ###
 
     def grand_total(self):
         return (self.income - self.discount + (self.tax_percent*self.income)/100)

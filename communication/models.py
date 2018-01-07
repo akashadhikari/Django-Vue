@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
+from lead.models import Process
 from rest_framework.authtoken.models import Token
 
 MEDIUM_CHOICES = (
@@ -29,11 +30,11 @@ class Clientlist(models.Model):
     medium_status = models.CharField(max_length=10, choices=YES_NO)
     contact_person = models.CharField(max_length=255, blank=False)
     remarks = models.TextField(max_length=999, blank=False)
+    to_lead = models.BooleanField(default=True)
+    lead = models.ForeignKey(Process, related_name='lead', on_delete=models.CASCADE)
 
     def __str__(self):
         return "{}".format(self.client_name)
-
-# SalesStage - grab client name, define stage (susp, pros, approach choices)
 
 SALES_STAGES = (
     ("Suspecting", "Suspecting"), # Contact verification
@@ -48,7 +49,7 @@ class SalesStage(models.Model):
 
     def __str__(self):
         return "{}-{}".format(self.sales_stage, self.substage)
-###
+
 class SalesSub(models.Model):
     sales_substage = models.CharField(max_length=100, blank=False)
     substage = models.ForeignKey(SalesStage, related_name='sub_stage', on_delete=models.DO_NOTHING)
@@ -56,7 +57,6 @@ class SalesSub(models.Model):
 
     def __str__(self):
         return "{}".format(self.sales_substage)
-###
 
 @receiver(post_save, sender=User)
 def create_auth_token(sender, instance=None, created=False, **kwargs):

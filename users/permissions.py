@@ -24,7 +24,7 @@ class IsManager(permissions.BasePermission):
     @staticmethod
     def is_manager(user):
         if user.is_authenticated:
-            return RelationUserType.objects.get(user=user).type == 'manager'
+            return RelationUserType.objects.get(user=user).usertype == 'manager'
         else:
             return False
 

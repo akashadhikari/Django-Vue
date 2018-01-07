@@ -5,7 +5,13 @@ from .models import Clientlist, SalesStage, SalesSub
 from .serializers import ClientlistSerializer, SalesStageSerializer, SalesSubSerializer
 from users.permissions import IsManager
 from rest_framework import permissions
-# from .permissions import IsOwner
+from .permissions import IsOwnerOrReadOnly
+from rest_framework.permissions import (
+    AllowAny,
+    IsAuthenticated,
+    IsAdminUser,
+    IsAuthenticatedOrReadOnly,
+    )
 
 class ClientlistViewSet(generics.ListCreateAPIView):
     queryset = Clientlist.objects.all()
@@ -21,15 +27,7 @@ class ClientlistViewSet(generics.ListCreateAPIView):
 class ClientlistDetailsViewSet(generics.RetrieveUpdateDestroyAPIView):
     queryset = Clientlist.objects.all()
     serializer_class = ClientlistSerializer
-    permission_classes = (IsManager,)
-
-# class DetaillistView(generics.ListCreateAPIView):
-#     queryset = Detaillist.objects.all()
-#     serializer_class = DetaillistSerializer
-
-# class DetailEditView(generics.RetrieveUpdateDestroyAPIView):
-#     queryset = Detaillist.objects.all()
-#     serializer_class = DetaillistSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
 class SalesStageListView(generics.ListCreateAPIView):
     queryset = SalesStage.objects.all()
@@ -40,6 +38,7 @@ class SalesStageListView(generics.ListCreateAPIView):
 class SalesStageEditView(generics.RetrieveUpdateDestroyAPIView):
     queryset = SalesStage.objects.all()
     serializer_class = SalesStageSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
 class SalesSubListView(generics.ListCreateAPIView):
     queryset = SalesSub.objects.all()
@@ -48,3 +47,4 @@ class SalesSubListView(generics.ListCreateAPIView):
 class SalesSubEditView(generics.RetrieveUpdateDestroyAPIView):
     queryset = SalesSub.objects.all()
     serializer_class = SalesSubSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
