@@ -43,3 +43,11 @@ class ProcessSerializer(serializers.ModelSerializer):
     class Meta:
         model = Process
         fields = ('id', 'user', 'service', 'income', 'discount', 'tax_percent', 'grand_total', 'unit', 'bulk', 'stage', 'created')
+
+class StatsSerializer(serializers.ModelSerializer):
+    hardware = serializers.ReadOnlyField()
+    software = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Process
+        fields = ('hardware', 'software')

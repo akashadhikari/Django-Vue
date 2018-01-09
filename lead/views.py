@@ -2,7 +2,7 @@ from rest_framework import viewsets, generics
 from .models import Process
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
-from .serializers import ProcessSerializer
+from .serializers import ProcessSerializer, StatsSerializer
 from users.permissions import IsManager
 from rest_framework import permissions
 # from .permissions import IsOwner
@@ -13,7 +13,7 @@ class ProcessListViewSet(generics.ListCreateAPIView):
     serializer_class = ProcessSerializer
     permission_classes = (IsManager,)
     filter_backends = (filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend)
-    search_fields = ('service', 'stage')
+    search_fields = ('service', 'stage', 'user__username')
     filter_fields = ('service', 'stage')
 
     def perform_create(self, serializer):
@@ -24,6 +24,10 @@ class ProcessDetailsViewSet(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ProcessSerializer
     permission_classes = (IsManager,)
 
+class StatsViewSet(generics.ListCreateAPIView):
+    queryset = Process.objects.all()
+    serializer_class = StatsSerializer
+
 ################################PANDAS#######################
 
 from rest_pandas import PandasView
@@ -33,3 +37,4 @@ from .serializers import ProcessSerializer
 class ProcessView(PandasView):
     queryset = Process.objects.all()
     serializer_class = ProcessSerializer
+

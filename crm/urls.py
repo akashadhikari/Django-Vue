@@ -16,11 +16,22 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls import url, include
 from django.contrib import admin
+from rest_framework_jwt.views import obtain_jwt_token
+from rest_framework_jwt.views import refresh_jwt_token 
+from rest_framework_jwt.views import verify_jwt_token
+from rest_framework.authtoken import views
+
+#...
+
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/lead/', include('lead.urls')),
     url(r'^api/communication/', include('communication.urls')),
+    url(r'^api-token-auth/', views.obtain_auth_token),
+    url(r'^api-token-auth/', obtain_jwt_token),
+    url(r'^api-token-refresh/', refresh_jwt_token),
+    url(r'^api-token-verify/', verify_jwt_token),
     url(r'^api/users/', include('users.urls')),
 ]
 

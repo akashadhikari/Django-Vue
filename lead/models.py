@@ -24,6 +24,15 @@ class Process(models.Model):
     stage = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(10)])
     created = models.DateTimeField(auto_now_add=True)
 
+    def hardware(self):
+        count_h = Process.objects.filter(service="Hardware").count()
+        return count_h
+
+    def software(self):
+        count_s = Process.objects.filter(service="Software").count()
+        return count_s
+
+
     def grand_total(self):
         return (self.income - self.discount + (self.tax_percent*self.income)/100)
 
