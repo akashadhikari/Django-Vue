@@ -14,9 +14,15 @@ SERVICE_CHOICES = (
     ("Software", "Software"),
 )
 
+STATUSES = (
+    ("Pending", "Pending"),
+    ("Approved", "Approved"),
+)
+
 class Process(models.Model):
     user = models.ForeignKey(User, related_name='user', on_delete=models.CASCADE) 
     service = models.CharField(max_length=15, choices=SERVICE_CHOICES)
+    status = models.CharField(max_length=15, choices=STATUSES)
     income = models.IntegerField(default=0)
     discount = models.IntegerField(default=0)
     tax_percent = models.PositiveIntegerField(default=1, 
