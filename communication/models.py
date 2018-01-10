@@ -30,7 +30,7 @@ class Clientlist(models.Model):
     medium_status = models.CharField(max_length=10, choices=YES_NO)
     contact_person = models.CharField(max_length=255, blank=False)
     remarks = models.TextField(max_length=999, blank=False)
-    to_lead = models.BooleanField(default=True)
+    from_lead = models.BooleanField(default=True)
     lead = models.ForeignKey(Process, related_name='lead', on_delete=models.CASCADE)
 
     def __str__(self):
